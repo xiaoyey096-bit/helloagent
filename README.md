@@ -1,6 +1,6 @@
 # Hello Agent 学习项目
 
-Datawhale hello-agent 课程实战:用最少的依赖从零实现两种智能体范式,共用同一个 LLM 客户端(从项目根的 `.env` 读取配置)。
+Datawhale hello-agent 课程实战:用最少的依赖从零实现三种智能体范式,共用同一个 LLM 客户端(从项目根的 `.env` 读取配置)。
 
 ## 目录结构
 
@@ -23,6 +23,13 @@ hello agent/
 │   ├── llm.py                 # LLM 流式客户端(与 react/ 同一实现)
 │   ├── prompts.py             # 规划/执行两个模板
 │   └── planandsolve执行链路.html # 执行链路架构图
+├── reflection/                 # Reflection 范式:执行→反思→优化,自我评审迭代
+│   ├── main.py                # 入口:python reflection/main.py
+│   ├── agent.py               # ReflectionAgent 主循环
+│   ├── memory.py              # 短期记忆(执行/反思轨迹)
+│   ├── prompts.py             # 执行/反思/优化三个模板
+│   ├── llm.py                 # LLM 流式客户端(与 react/ 同一实现)
+│   └── reflection执行链路.html # 执行链路架构图
 ├── OpenAI数据包形式.py         # 流式 chunk 数据包的教学观察示例
 ├── 基础知识/                   # 学习笔记
 └── .env                       # 密钥配置(已被 .gitignore 忽略,切勿提交)
@@ -30,12 +37,12 @@ hello agent/
 
 两个文件夹各自独立、互不依赖,在项目根目录直接运行即可(`.env` 放在根目录,两个入口都会自动向上找到它)。
 
-## 两种范式对比
+## 三种范式对比
 
-| | ReAct | Plan-and-Solve |
-|---|---|---|
-| 决策方式 | 每轮根据观察动态决定下一步 | 开始时一次性生成完整计划 |
-| 外部工具 | SerpApi 谷歌搜索 | 无,全程纯 LLM 问答 |
-| 循环中传递 | Thought/Action/Observation 历史 | 已完成步骤 + 结果的历史 |
-| 正常出口 | `Action: Finish[答案]` | 计划的最后一步输出 |
-| 兜底出口 | 超过 max_steps 强制总结 | 计划解析失败直接终止 |
+| | ReAct | Plan-and-Solve | Reflection |
+|---|---|---|---|
+| 决策方式 | 每轮根据观察动态决定下一步 | 开始时一次性生成完整计划 | 初稿后由评审员反馈驱动迭代 |
+| 外部工具 | SerpApi 谷歌搜索 | 无,全程纯 LLM 问答 | 无,LLM 自我评审 |
+| 循环中传递 | Thought/Action/Observation 历史 | 已完成步骤 + 结果的历史 | 执行/反思轨迹(短期记忆) |
+| 正常出口 | `Action: Finish[答案]` | 计划的最后一步输出 | 评审员判定"无需改进" |
+| 兜底出口 | 超过 max_steps 强制总结 | 计划解析失败直接终止 | 达到 max_iterations 轮上限 |
