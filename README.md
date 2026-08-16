@@ -12,9 +12,10 @@ hello agent/
 │   ├── llm.py                 # LLM 流式客户端
 │   ├── prompts.py             # 提示词模板
 │   ├── tools.py               # SerpApi 搜索工具与工具执行器
-│   ├── reactagent_json.py     # JSON 协议版智能体:json_object 模式 + 防御性解析(4.2 思考题)
-│   ├── prompts_json.py        # JSON 协议提示词模板
-│   ├── main_json.py           # JSON 版入口:python react/main_json.py
+│   ├── json/                  # JSON 协议版(4.2 思考题):入口 python react/json/main_json.py
+│   │   ├── reactagent_json.py # json_object 模式 + 防御性解析的智能体
+│   │   ├── prompts_json.py    # JSON 协议提示词模板
+│   │   └── main_json.py       # JSON 版入口(共用上级 llm.py / tools.py)
 │   └── reactagent执行链路.html # 执行链路架构图
 ├── plan_and_solve/            # Plan-and-Solve 范式:先规划后执行,纯 LLM 问答
 │   ├── main.py                # 入口:python plan_and_solve/main.py

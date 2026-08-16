@@ -1,11 +1,15 @@
 """
-JSON 版 ReAct 入口: 组装使用 JSON 结构化协议的 ReAct 智能体,与文本版(main.py)跑同一组问题便于对比。
+JSON 版 ReAct 入口: 组装使用 JSON 结构化协议的 ReAct 智能体,与文本版(react/main.py)跑同一组问题便于对比。
 
 build_agent: 创建 LLM 客户端 → 注册 Search 工具 → 实例化 ReActJsonAgent
-用法: python main_json.py(先跑内置演示问题再进入交互问答,输入 exit/q 退出)
+用法: python react/json/main_json.py(先跑内置演示问题再进入交互问答,输入 exit/q 退出)
 """
 
+import os
 import sys
+
+# 本脚本在 react/json/ 子目录,把上级 react/ 目录加入模块搜索路径,才能共用其 llm.py 与 tools.py
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Windows 控制台默认 GBK 编码,打印 emoji 会抛 UnicodeEncodeError,这里强制 UTF-8 输出
 if sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":
