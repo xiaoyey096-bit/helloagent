@@ -1,0 +1,562 @@
+<!--
+  功能: 第三章「大语言模型基础」要点清单——双栏对照版(左:要点术语 / 右:答案与解释),用于自测回忆。
+  创建日期: 2026-08-13
+  输入: datawhale hello-agents 教程第三章原文(已读取)
+  输出: 单页 HTML,双栏表格,可浏览器打开,亦可打印为 PDF
+  说明: 全部样式内联、无外部依赖;适配亮/暗主题;响应式:窄屏自动变为单栏堆叠
+-->
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>第三章 大语言模型基础 · 要点清单</title>
+<style>
+  :root{
+    --bg:#fbfaf7; --fg:#1f2328; --muted:#6b7280; --rule:#e5e3dd;
+    --lhs:#fff; --lhs-bg:#f4f2ec; --accent:#2f5fa6; --code-bg:#f3f1ea;
+    --row-alt:#faf9f5;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#15171c; --fg:#e6e6e6; --muted:#9aa3af; --rule:#2a2e36;
+      --lhs:#0f1116; --lhs-bg:#1b1f26; --accent:#8ab4f8; --code-bg:#1e222a;
+      --row-alt:#1a1d23;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#15171c; --fg:#e6e6e6; --muted:#9aa3af; --rule:#2a2e36;
+    --lhs:#0f1116; --lhs-bg:#1b1f26; --accent:#8ab4f8; --code-bg:#1e222a;
+    --row-alt:#1a1d23;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0; background:var(--bg); color:var(--fg);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",Roboto,Helvetica,Arial,sans-serif;
+    line-height:1.75; font-size:16px;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1180px; margin:0 auto; padding:0 22px 120px}
+
+  /* 顶部 */
+  header.top{
+    position:sticky; top:0; z-index:20;
+    background:var(--bg); border-bottom:1px solid var(--rule);
+    backdrop-filter:saturate(1.2) blur(6px);
+    margin:0 -22px 0; padding:14px 22px;
+  }
+  .top h1{margin:0 0 4px; font-size:1.18rem; font-weight:700}
+  .top p{margin:0; color:var(--muted); font-size:.82rem}
+  .toolbar{margin-top:8px; display:flex; gap:6px; flex-wrap:wrap}
+  .toolbar button{
+    font:inherit; font-size:.78rem; cursor:pointer;
+    border:1px solid var(--rule); background:var(--lhs-bg); color:var(--fg);
+    padding:4px 10px; border-radius:999px; transition:.15s;
+  }
+  .toolbar button:hover{border-color:var(--accent); color:var(--accent)}
+  .toolbar button.active{background:var(--accent); color:#fff; border-color:var(--accent)}
+
+  /* 章节导航 */
+  nav.toc{
+    margin:22px 0 6px; padding:14px 16px; border:1px solid var(--rule);
+    border-radius:10px; background:var(--lhs-bg);
+  }
+  nav.toc strong{font-size:.8rem; color:var(--muted); display:block; margin-bottom:6px; letter-spacing:.04em}
+  nav.toc a{
+    text-decoration:none; color:var(--fg); font-size:.88rem;
+    margin-right:14px; display:inline-block; padding:2px 0;
+  }
+  nav.toc a:hover{color:var(--accent)}
+
+  /* 章节大标题 */
+  section{margin-top:42px; scroll-margin-top:96px}
+  section > h2{
+    font-size:1.28rem; margin:0 0 4px; padding-bottom:8px;
+    border-bottom:2px solid var(--accent);
+  }
+  section > .sec-sub{color:var(--muted); font-size:.85rem; margin:0 0 18px}
+
+  /* 双栏表 */
+  table.grid{
+    width:100%; border-collapse:collapse; border:1px solid var(--rule);
+    border-radius:10px; overflow:hidden;
+  }
+  table.grid th{
+    text-align:left; font-size:.78rem; letter-spacing:.06em;
+    color:var(--muted); font-weight:600; padding:9px 14px;
+    background:var(--lhs-bg); border-bottom:1px solid var(--rule);
+  }
+  table.grid td{
+    vertical-align:top; padding:13px 15px;
+    border-top:1px solid var(--rule);
+  }
+  table.grid tr:first-child td{border-top:none}
+  /* 左栏 */
+  td.lhs{
+    width:34%; min-width:230px; background:var(--lhs-bg);
+    font-weight:600; font-size:.98rem;
+  }
+  td.lhs .leaf{
+    display:block; font-weight:400; color:var(--muted);
+    font-size:.86rem; margin-top:3px;
+  }
+  /* 右栏 */
+  td.rhs{font-size:.94rem}
+  td.rhs p{margin:.3em 0}
+  td.rhs p:first-child{margin-top:0}
+  td.rhs p:last-child{margin-bottom:0}
+  td.rhs .term{font-weight:700; color:var(--accent)}
+  td.rhs code{
+    font-family:"SF Mono",Consolas,Menlo,monospace; font-size:.86em;
+    background:var(--code-bg); padding:1px 6px; border-radius:4px;
+  }
+  td.rhs ul{margin:.3em 0; padding-left:1.3em}
+  td.rhs li{margin:.18em 0}
+  td.rhs .formula{
+    font-family:"SF Mono",Consolas,Menlo,monospace; font-size:.9em;
+    background:var(--code-bg); padding:7px 11px; border-radius:6px;
+    display:block; margin:6px 0; overflow-x:auto;
+  }
+
+  /* 交替行底色 */
+  table.grid tbody tr:nth-child(even) td.rhs{background:var(--row-alt)}
+
+  /* 折叠态:隐藏右栏,左栏加宽 —— 适合自测 */
+  body.hide-rhs td.rhs{display:none}
+  body.hide-rhs td.lhs{width:100%; background:var(--lhs-bg)}
+  body.hide-rhs .toolbar button#btnHide{background:var(--accent); color:#fff; border-color:var(--accent)}
+
+  footer{margin-top:60px; padding-top:18px; border-top:1px solid var(--rule); color:var(--muted); font-size:.8rem}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap" style="padding:0">
+    <h1>第三章 大语言模型基础 · 要点清单</h1>
+    <p>左栏 = 要点术语(用来回忆) · 右栏 = 答案与解释(用来核对) · 顶部「隐藏右栏」可进入纯自测模式</p>
+    <div class="toolbar">
+      <button id="btnHide">隐藏 / 显示右栏</button>
+      <button onclick="window.print()">打印 / 导出 PDF</button>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+<nav class="toc">
+  <strong>章节导航</strong>
+  <a href="#s1">3.1 语言模型与 Transformer 架构</a>
+  <a href="#s2">3.2 与大语言模型交互</a>
+  <a href="#s3">3.3 缩放法则与局限性</a>
+</nav>
+
+<!-- ====================== 3.1 ====================== -->
+<section id="s1">
+  <h2>3.1 语言模型与 Transformer 架构</h2>
+  <p class="sec-sub">主线:统计方法(N-gram) → 神经网络(词嵌入) → 循环网络(RNN/LSTM) → Transformer → Decoder-Only</p>
+
+  <table class="grid">
+    <thead><tr><th>要点术语</th><th>答案与解释</th></tr></thead>
+    <tbody>
+
+      <tr>
+        <td class="lhs">语言模型的根本任务</td>
+        <td class="rhs">
+          <p>计算一个<span class="term">词序列(句子)出现的概率</span>——判断什么样的句子通顺、自然。它是智能体理解指令、生成回应的基础。</p>
+        </td>
+      </tr>
+
+      <tr>
+        <td class="lhs">概率的链式法则<span class="leaf">→ 引出为什么需要 N-gram</span></td>
+        <td class="rhs">
+          <p>句子概率 = 每个词的条件概率连乘:</p>
+          <span class="formula">P(S) = P(w₁)·P(w₂|w₁)·P(w₃|w₁,w₂)⋯P(wₘ|w₁,…,wₘ₋₁)</span>
+          <p>直接计算几乎不可能:像 <code>P(wₘ|w₁,…,wₘ₋₁)</code> 这样的长条件概率,词序列可能从未在语料中出现。</p>
+        </td>
+      </tr>
+
+      <tr>
+        <td class="lhs">N-gram<span class="leaf">马尔可夫假设 · Bigram · Trigram · MLE</span></td>
+        <td class="rhs">
+          <p><span class="term">核心思想</span>:基于「<b>马尔可夫假设</b>」——不必回溯全部历史,近似认为一个词只与前面有限的 n−1 个词有关。N 代表上下文窗口大小。</p>
+          <ul>
+            <li><b>Bigram (N=2)</b>:一个词只与前 1 个词有关 → <code>P(wᵢ|w₁..wᵢ₋₁) ≈ P(wᵢ|wᵢ₋₁)</code></li>
+            <li><b>Trigram (N=3)</b>:只与前 2 个词有关 → <code>P(wᵢ|…) ≈ P(wᵢ|wᵢ₋₂,wᵢ₋₁)</code></li>
+          </ul>
+          <p>概率用「<b>最大似然估计 MLE</b>」靠计数估算:<code>P(wᵢ|wᵢ₋₁) = Count(wᵢ₋₁,wᵢ) / Count(wᵢ₋₁)</code>。</p>
+          <p><b>两大缺陷</b>:① 数据稀疏性(未出现序列概率为 0,需平滑);② 泛化能力差(把词当孤立符号,不懂 agent 与 robot 语义相近)。</p>
+        </td>
+      </tr>
+
+      <tr>
+        <td class="lhs">词嵌入 (Word Embedding)<span class="leaf">神经网络语言模型 · 余弦相似度</span></td>
+        <td class="rhs">
+          <p>2003 年 Bengio 的「前馈神经网络语言模型」里程碑:把每个词映射为高维连续空间中的一个点 = <span class="term">词嵌入</span>。语义相近的词向量位置相近。</p>
+          <p>两步思想:① 构建语义空间(词嵌入);② 学习「上下文 → 下一个词概率分布」的映射函数。</p>
+          <p>用<b>余弦相似度</b>度量:</p>
+          <span class="formula">sim(a,b) = (a·b) / (|a|·|b|) ,取值 [−1, 1]</span>
+          <p>经典类比:<code>vec(King) − vec(Man) + vec(Woman) ≈ vec(Queen)</code>。解决了 N-gram 泛化差问题,但仍<b>保留固定上下文窗口</b>的限制。</p>
+        </td>
+      </tr>
+
+      <tr>
+        <td class="lhs">RNN<span class="leaf">隐藏状态 · 长期依赖 · 梯度消失/爆炸</span></td>
+        <td class="rhs">
+          <p><span class="term">循环神经网络</span>核心思想:为网络增加「记忆」,打破固定窗口。</p>
+          <p>引入<b>隐藏状态 (hidden state)</b>= 网络的短期记忆。每步:读当前输入 + 上一刻记忆 → 生成新记忆向后传,信息在序列中持续传递。</p>
+          <p><b>致命问题:长期依赖问题</b>。序列长度即网络深度,反向传播时梯度多次连乘 →</p>
+          <ul>
+            <li><b>梯度消失</b>:梯度趋向 0,学不到早期信息;</li>
+            <li><b>梯度爆炸</b>:梯度变得极大。</li>
+          </ul>
+        </td>
+      </tr>
+
+      <tr>
+        <td class="lhs">LSTM<span class="leaf">细胞状态 · 遗忘门 · 输入门 · 输出门</span></td>
+        <td class="rhs">
+          <p><span class="term">长短时记忆网络</span>专为解决长期依赖而设计。两大核心创新:</p>
+          <ul>
+            <li><b>细胞状态 (Cell State)</b>:独立于隐藏状态的信息通路,信息在时间步间更顺畅传递。</li>
+            <li><b>门控机制</b>:由几个小网络构成,有选择地放行信息,控制细胞状态的增删。三个门:</li>
+          </ul>
+          <p style="margin-left:1.3em">
+            ① <b>遗忘门</b>:决定从上一时刻细胞状态<b>丢弃</b>哪些信息;<br>
+            ② <b>输入门</b>:决定把当前输入的哪些新信息<b>存入</b>细胞状态;<br>
+            ③ <b>输出门</b>:决定据当前细胞状态<b>输出</b>哪些信息到隐藏状态。
+          </p>
+        </td>
+      </tr>
+
+      <tr>
+        <td class="lhs">Transformer<span class="leaf">为什么取代 RNN · Encoder-Decoder</span></td>
+        <td class="rhs">
+          <p>2017 年 Google 提出。<b>RNN 必须按顺序串行处理</b>(第 t 步要等第 t−1 步),无法大规模并行,限制规模和训练速度。</p>
+          <p>Transformer <b>完全抛弃循环结构</b>,只靠<b>注意力机制</b>捕捉依赖,实现真正的并行计算。为机器翻译设计,宏观遵循<b>编码器-解码器 (Encoder-Decoder)</b>:</p>
+          <ul>
+            <li><b>编码器</b>:「理解」整个输入,为每个词元生成富含上下文的向量;</li>
+            <li><b>解码器</b>:「生成」目标,参考已生成前文 + 询问编码器结果。</li>
+          </ul>
+        </td>
+      </tr>
+
+      <tr>
+        <td class="lhs">QKV<span class="leaf">自注意力 · 缩放点积公式</span></td>
+        <td class="rhs">
+          <p><b>自注意力</b>建模「读句子时把注意力分配到相关词上」的现象。为每个词引入三个可学习角色(各由词嵌入乘权重矩阵得到):</p>
+          <ul>
+            <li><b>查询 Query (Q)</b>:当前词主动查询别的词;</li>
+            <li><b>键 Key (K)</b>:可被查询词的「标签/索引」;</li>
+            <li><b>值 Value (V)</b>:词本身携带的「内容/信息」。</li>
+          </ul>
+          <p>四步:① 算相关性(Q 与所有 K 点积) → ② 稳定化(÷√dₖ) → ③ Softmax 归一化 → ④ 权重 × V 加权求和。</p>
+          <span class="formula">Attention(Q,K,V) = softmax( QKᵀ / √dₖ ) V</span>
+        </td>
+      </tr>
+
+      <tr>
+        <td class="lhs">多头注意力</td>
+        <td class="rhs">
+          <p>单头只学一种关联。多头把 Q/K/V 在维度上<b>切分成 h 份</b>,各做一次单头注意力,拼接后线性变换整合——如同 h 个「专家」从不同角度(指代/时态/从属等)审视句子,大幅增强表达能力。</p>
+        </td>
+      </tr>
+
+      <tr>
+        <td class="lhs">前馈神经网络<span class="leaf">Position-wise FFN</span></td>
+        <td class="rhs">
+          <p><span class="term">逐位置前馈网络</span>作用:从注意力聚合的信息中<b>提取更高阶特征</b>。</p>
+          <p>「逐位置」= <b>独立作用于序列每个词元</b>,所有位置<b>共享同一组权重</b>。结构:两个线性变换 + 一个 ReLU,「先扩大再缩小」(d_ff ≈ 4×d_model)。</p>
+          <span class="formula">FFN(x) = max(0, xW₁+b₁) W₂ + b₂</span>
+        </td>
+      </tr>
+
+      <tr>
+        <td class="lhs">残差连接<span class="leaf">Add · 解决梯度消失</span></td>
+        <td class="rhs">
+          <p><span class="term">残差连接 (Add)</span>:把子模块输入直接加到输出上 → <code>Output = x + Sublayer(x)</code>。</p>
+          <p>反向传播时梯度可绕过子模块直接前传,解决了深度网络的<b>梯度消失</b>问题,即使很深也能有效训练。</p>
+        </td>
+      </tr>
+
+      <tr>
+        <td class="lhs">层归一化<span class="leaf">Norm · 内部协变量偏移</span></td>
+        <td class="rhs">
+          <p><span class="term">层归一化 (Norm)</span>:对单个样本的所有特征归一化(均值 0、方差 1)。</p>
+          <p>解决训练中的<b>内部协变量偏移</b>,使每层输入分布稳定,加速收敛、提高稳定性。与残差一起组成 <code>Add &amp; Norm</code> 包裹每个子模块。</p>
+        </td>
+      </tr>
+
+      <tr>
+        <td class="lhs">位置编码<span class="leaf">Positional Encoding · sin/cos</span></td>
+        <td class="rhs">
+          <p>自注意力本身<b>不含任何顺序/位置信息</b>(对它 "agent learns" 与 "learns agent" 等价)。</p>
+          <p>位置编码 = 为每个词元嵌入<b>加上</b>一个代表其位置的位置向量。该向量<b>不是学习的</b>,而是固定公式算出:</p>
+          <span class="formula">PE(pos,2i)   = sin(pos / 10000^(2i/d_model))<br>PE(pos,2i+1) = cos(pos / 10000^(2i/d_model))</span>
+          <p>效果:相同词因位置不同 → 加不同位置编码 → 变得独一无二。(pos=位置,i=维度索引)</p>
+        </td>
+      </tr>
+
+      <tr>
+        <td class="lhs">Decoder-Only<span class="leaf">GPT · 自回归 · 掩码自注意力</span></td>
+        <td class="rhs">
+          <p>GPT 的简化思想:语言核心任务就是<b>预测下一个词</b>。于是<b>完全抛弃编码器,只留解码器</b> → Decoder-Only。GPT-4/Llama 等均基于此。</p>
+          <p><b>自回归 (Autoregressive)</b>:给起始文本 → 预测下一词 → 把新词加到输入末尾 → 再预测 → 重复,像「文字接龙」。</p>
+          <p><b>掩码自注意力</b>:训练时分数算完后、Softmax 前用「因果掩码」把当前位置<b>之后的分数置为极大负数</b>,Softmax 后概率为 0,防止模型「偷看」未来答案;保证训练方式与生成时的自回归一致。</p>
+          <p><b>三大优势</b>:① 训练目标统一(只预测下一词,适合海量无标注预训练);② 结构简单易扩展;③ 天然适合生成任务。</p>
+        </td>
+      </tr>
+
+    </tbody>
+  </table>
+</section>
+
+<!-- ====================== 3.2 ====================== -->
+<section id="s2">
+  <h2>3.2 与大语言模型交互</h2>
+  <p class="sec-sub">提示工程(采样参数 + 提示策略) · 文本分词 · 本地部署 · 模型选型</p>
+
+  <table class="grid">
+    <thead><tr><th>要点术语</th><th>答案与解释</th></tr></thead>
+    <tbody>
+
+      <tr>
+        <td class="lhs">top-k</td>
+        <td class="rhs">
+          <p>按概率从高到低排序,只取<b>前 k 个</b> token 组成候选集,归一化后再采样。<code>k=1</code> 时退化为<b>贪心采样</b>(完全确定)。</p>
+          <p>与温度的区别:温度调分布陡峭(候选数不变),top-k 限制候选数量。</p>
+        </td>
+      </tr>
+
+      <tr>
+        <td class="lhs">top-p<span class="leaf">核采样 Nucleus</span></td>
+        <td class="rhs">
+          <p>按概率排序后<b>逐步累加</b>,累加和<b>首次 ≥ p</b> 的最小集合即「核集合」,归一化后采样。</p>
+          <p>相对固定截断的 top-k,top-p 能<b>动态适应长尾</b>,对不均匀分布适应性更好。通常 top-k 与 top-p 二选一。</p>
+        </td>
+      </tr>
+
+      <tr>
+        <td class="lhs">温度 Temperature<span class="leaf">采样参数总览 · 协同优先级</span></td>
+        <td class="rhs">
+          <p>采样参数本质:调整模型对概率分布的采样策略(基于 Softmax)。<b>温度</b>控制随机性 vs 确定性:</p>
+          <span class="formula">pᵢ^(T) = e^(zᵢ/T) / Σ e^(zⱼ/T)</span>
+          <p>T 小→分布更陡峭→更保守/确定;T 大→更平坦→更多样/可能不连贯。三档场景:</p>
+          <ul>
+            <li><b>低温 (0≤T&lt;0.3)</b>:精准确定 → 问答/数据计算/代码/法律条文;</li>
+            <li><b>中温 (0.3≤T&lt;0.7)</b>:平衡自然 → 日常对话/客服/邮件文案;</li>
+            <li><b>高温 (0.7≤T&lt;2)</b>:创新发散 → 诗歌/科幻/slogan/灵感。</li>
+          </ul>
+          <p>三参数<b>协同优先级</b>:温度调整 → top-k → top-p。边界:T=0 时 top-k/p 失效;top-k=1 时温度/p 失效。</p>
+        </td>
+      </tr>
+
+      <tr>
+        <td class="lhs">零样本 / 单样本 / 少样本<span class="leaf">Zero / One / Few-shot</span></td>
+        <td class="rhs">
+          <p>按提供「示例 (Exemplar) 数量」分类(以情感分类为例):</p>
+          <ul>
+            <li><b>零样本</b>:不给任何示例,直接下指令(依赖预训练泛化);</li>
+            <li><b>单样本</b>:给 1 个完整示例,展示格式与输出风格;</li>
+            <li><b>少样本</b>:给多个示例,让模型理解任务细节/边界/细微差别。</li>
+          </ul>
+        </td>
+      </tr>
+
+      <tr>
+        <td class="lhs">指令调优<span class="leaf">Instruction Tuning · 文本补全 vs 指令</span></td>
+        <td class="rhs">
+          <p>早期 GPT-3 是「文本补全」模型,不擅长理解执行指令。<span class="term">指令调优</span>= 用大量「指令-回答」数据微调预训练模型,使其能遵循指令。现今 ChatGPT/DeepSeek/Qwen 都是经指令调优的版本。</p>
+          <p>对比:文本补全模型需用少样本「教会」它;指令调优模型可直接下达自然语言指令。</p>
+        </td>
+      </tr>
+
+      <tr>
+        <td class="lhs">基础提示词技巧<span class="leaf">角色扮演 · 上下文示例</span></td>
+        <td class="rhs">
+          <ul>
+            <li><b>角色扮演 (Role-playing)</b>:赋予特定角色 → 引导回答风格/语气/知识范围(如「你是一位资深 Python 专家…」)。</li>
+            <li><b>上下文示例 (In-context Example)</b>:同少样本思想,提供清晰输入输出示例,复杂格式/特定风格任务尤其有效(如指定 JSON 输出格式)。</li>
+          </ul>
+        </td>
+      </tr>
+
+      <tr>
+        <td class="lhs">COT<span class="leaf">思维链 Chain-of-Thought</span></td>
+        <td class="rhs">
+          <p>适用场景:逻辑推理/计算/多步骤思考的复杂问题。核心做法:引导模型「一步一步思考」(加引导语如 "Let's think step by step")。</p>
+          <p>价值:既提升复杂任务正确率,也使回答更可信、更易检查纠正(显式展示推理过程)。</p>
+        </td>
+      </tr>
+
+      <tr>
+        <td class="lhs">分词 / 词元<span class="leaf">Tokenization · Token</span></td>
+        <td class="rhs">
+          <p>计算机只能理解数字。<b>分词</b>= 把文本序列转成数字序列的过程;<b>分词器 (Tokenizer)</b>按规则把文本切成最小单元<b>词元 (Token)</b>。</p>
+          <p>为何不用「字符」或「单词」:</p>
+          <ul>
+            <li><b>按词</b>:词表爆炸 + 未登录词(OOV);语义关联缺失(look/looks/looking 视为不同词);</li>
+            <li><b>按字符</b>:词表小、无 OOV,但单字符无独立语义,学习效率低。</li>
+          </ul>
+          <p>现代 LLM 主流:<b>子词分词</b>——常见词保留完整,罕见词拆成有意义子词片段,兼顾词表大小与语义。</p>
+        </td>
+      </tr>
+
+      <tr>
+        <td class="lhs">BPE<span class="leaf">WordPiece · SentencePiece</span></td>
+        <td class="rhs">
+          <p><b>BPE (字节对编码)</b>——GPT 系列采用,核心是「贪心合并」:</p>
+          <ul>
+            <li>① 初始化:词表 = 语料所有基本字符;</li>
+            <li>② 迭代合并:统计相邻词元对频率,合并<b>最高频对</b>成新词元入词表;</li>
+            <li>③ 重复直到词表达阈值。</li>
+          </ul>
+          <p>BPE 的两个主要变体:</p>
+          <ul>
+            <li><b>WordPiece</b>(Google BERT):合并标准非「最高频率」,而是「最大化提升语料库语言模型概率」(优先合并让整体更通顺的对);</li>
+            <li><b>SentencePiece</b>(Google 开源,Llama 采用):把<b>空格也当普通字符</b>(下划线 _ 表示),分词/解码完全可逆、不依赖特定语言(无需知道中文不用空格)。</li>
+          </ul>
+        </td>
+      </tr>
+
+      <tr>
+        <td class="lhs">分词器对开发者的意义<span class="leaf">上下文窗口 · API成本 · 模型异常</span></td>
+        <td class="rhs">
+          <ul>
+            <li><b>上下文窗口限制</b>:窗口(8K/128K)以 <b>Token 数量</b>计(非字符数/单词数);中英文、不同分词器 Token 数差异大。精确管理输入长度是构建长时记忆智能体的基础。</li>
+            <li><b>API 成本</b>:多数模型按 <b>Token 数计费</b>,了解分词方式是预估/控制成本的关键。</li>
+            <li><b>模型表现的异常</b>:分词陷阱影响鲁棒性。例:<code>2 + 2</code> 能算但 <code>2+2</code>(无空格)可能出错(被切成罕见词元);同一词大小写不同 → 切成完全不同 Token 序列。</li>
+          </ul>
+        </td>
+      </tr>
+
+      <tr>
+        <td class="lhs">本地部署开源模型<span class="leaf">Hugging Face · Qwen1.5-0.5B · 调用流程</span></td>
+        <td class="rhs">
+          <p>用 <b>Hugging Face Transformers</b> 标准化加载预训练模型。示例模型 <code>Qwen/Qwen1.5-0.5B-Chat</code>(阿里 ~5亿参数,适合入门本地部署)。</p>
+          <p>两个核心类:<code>AutoModelForCausalLM</code>(加载权重)、<code>AutoTokenizer</code>(加载分词器)。</p>
+          <p>调用四步:① <code>apply_chat_template</code> 格式化对话(system/user 角色) → ② tokenizer 编码文本为 Token ID → ③ <code>model.generate()</code> 生成(<code>max_new_tokens</code> 控制长度) → ④ <code>tokenizer.decode()</code> 把 Token ID 翻译回文本。</p>
+        </td>
+      </tr>
+
+      <tr>
+        <td class="lhs">模型选型关键考量<span class="leaf">八大维度</span></td>
+        <td class="rhs">
+          <ul>
+            <li><b>① 性能与能力</b>:参考 LMSys Chatbot Arena 等排行榜;</li>
+            <li><b>② 成本</b>:闭源=API 按 Token 计费;开源=本地硬件+运维;</li>
+            <li><b>③ 速度(延迟)</b>:实时交互(客服/NPC)需低延迟;</li>
+            <li><b>④ 上下文窗口</b>:长文档/代码库/长期对话需大窗口(128K+);</li>
+            <li><b>⑤ 部署方式</b>:API 简便但数据出第三方;本地保隐私但要求高;</li>
+            <li><b>⑥ 生态与工具链</b>:社区/教程/微调工具/LangChain/LlamaIndex;</li>
+            <li><b>⑦ 可微调性与定制化</b>:能否用自有数据定制(开源通常更灵活);</li>
+            <li><b>⑧ 安全性与伦理</b>:偏见/毒性/幻觉及负责任 AI。</li>
+          </ul>
+        </td>
+      </tr>
+
+      <tr>
+        <td class="lhs">闭源 vs 开源模型<span class="leaf">代表模型 · MoE</span></td>
+        <td class="rhs">
+          <p><b>闭源</b>(技术前沿 + 稳定 API):</p>
+          <ul>
+            <li><b>OpenAI GPT</b>:GPT-3→ChatGPT(引入 <b>RLHF</b> 对齐)→GPT-4(多模态)→GPT-5;</li>
+            <li><b>Google Gemini</b>:原生多模态、超长上下文,分 Ultra/Pro/Nano,2.5 含 Pro 与 Flash;</li>
+            <li><b>Anthropic Claude</b>:以 AI 安全为首,长文档/减害/指令可靠,企业级青睐;Claude 3 分 Opus/Sonnet/Haiku;</li>
+            <li><b>国内</b>:文心一言/混元/盘古/星火/月之暗面。</li>
+          </ul>
+          <p><b>开源</b>(灵活/透明/可微调):</p>
+          <ul>
+            <li><b>Meta Llama</b>:Llama 4(2025.4)首批采用 <b>MoE(混合专家)</b> 架构(仅激活所需部分提效);含 Scout(1000万 token 上下文)/Maverick(多模态)/Behemoth(最强);</li>
+            <li><b>Mistral AI</b>:法国,「小尺寸高性能」;</li>
+            <li><b>国内</b>:通义千问 Qwen、ChatGLM。</li>
+          </ul>
+        </td>
+      </tr>
+
+    </tbody>
+  </table>
+</section>
+
+<!-- ====================== 3.3 ====================== -->
+<section id="s3">
+  <h2>3.3 缩放法则与局限性</h2>
+  <p class="sec-sub">性能从哪来(缩放法则) · 不可靠从哪来(模型幻觉)</p>
+
+  <table class="grid">
+    <thead><tr><th>要点术语</th><th>答案与解释</th></tr></thead>
+    <tbody>
+
+      <tr>
+        <td class="lhs">缩放法则<span class="leaf">Scaling Laws · 幂律</span></td>
+        <td class="rhs">
+          <p>揭示模型性能与<b>三要素</b>呈<b>可预测的幂律关系</b>(对数-对数坐标下平滑):① 模型参数量 ② 训练数据量 ③ 计算资源(算力)。</p>
+          <p>指导意义:按比例持续增加三要素 → 性能可预测、平滑提升,无明显瓶颈。</p>
+        </td>
+      </tr>
+
+      <tr>
+        <td class="lhs">Chinchilla 定律<span class="leaf">最优配比 · 纠正「越大越好」</span></td>
+        <td class="rhs">
+          <p>2022 年 DeepMind 提出的重要修正:<b>纠正了「越大越好」的片面认知</b>。</p>
+          <p>核心结论:给定计算预算下,<b>参数量与数据量存在最优配比</b>——最优模型应「更小但用更多数据」训练。案例:700 亿 Chinchilla 用 4 倍数据训练,性能反超 1750 亿 GPT-3。</p>
+        </td>
+      </tr>
+
+      <tr>
+        <td class="lhs">能力涌现<span class="leaf">Emergence</span></td>
+        <td class="rhs">
+          <p>规模达阈值后<b>突然</b>展现小模型完全没有的新能力。典型涌现能力:链式思考(CoT)、指令遵循、多步推理、代码生成(数百亿~千亿参数后才显著)。</p>
+          <p>对开发者:实现复杂自主决策/规划,前提是选足够大规模的模型。</p>
+        </td>
+      </tr>
+
+      <tr>
+        <td class="lhs">模型幻觉<span class="leaf">Hallucination · 定义与三类</span></td>
+        <td class="rhs">
+          <p><span class="term">幻觉</span>= 生成内容与客观事实/用户输入/上下文矛盾,或编造不存在的事实/实体/事件(过度自信地「编造」)。三类:</p>
+          <ul>
+            <li><b>事实性幻觉 (Factual)</b>:与现实世界事实不符;</li>
+            <li><b>忠实性幻觉 (Faithfulness)</b>:摘要/翻译等未忠实反映源文本;</li>
+            <li><b>内在幻觉 (Intrinsic)</b>:生成内容与输入信息直接矛盾。</li>
+          </ul>
+          <p><b>成因</b>:① 训练数据含错误/矛盾;② 自回归机制只预测下一词、<b>无内置事实核查</b>;③ 复杂推理逻辑链出错。另有知识时效性不足、训练数据偏见等挑战。</p>
+        </td>
+      </tr>
+
+      <tr>
+        <td class="lhs">幻觉缓解方法<span class="leaf">数据/模型/推理三层 · RAG · 工具</span></td>
+        <td class="rhs">
+          <ul>
+            <li><b>数据层面</b>:高质量数据清洗、引入事实性知识、<b>RLHF(强化学习+人类反馈)</b>;</li>
+            <li><b>模型层面</b>:探索新架构、让模型表达不确定性;</li>
+            <li><b>推理与生成层面</b>(三种主流):
+              <ul>
+                <li><b>RAG(检索增强生成)</b>:生成前从外部知识库检索相关信息作为上下文,引导生成基于事实的回答(最有效之一);</li>
+                <li><b>多步推理与验证</b>:每步自我检查或外部验证;</li>
+                <li><b>引入外部工具</b>:调用搜索引擎/计算器/代码解释器获取实时信息或精确计算。</li>
+              </ul>
+            </li>
+          </ul>
+        </td>
+      </tr>
+
+    </tbody>
+  </table>
+</section>
+
+<footer>
+  数据来源:datawhale hello-agents 教程第三章《大语言模型基础》。 · 左栏用于回忆自测,右栏用于核对。
+</footer>
+
+</div>
+
+<script>
+  // 隐藏/显示右栏 —— 自测模式
+  document.getElementById('btnHide').addEventListener('click', function(){
+    document.body.classList.toggle('hide-rhs');
+    this.classList.toggle('active');
+  });
+</script>
+</body>
+</html>

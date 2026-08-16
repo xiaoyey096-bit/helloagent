@@ -1,0 +1,16 @@
+{
+    // 本项目固定使用 conda 的 langchain_env 环境
+    // Python 扩展选中该解释器后,新开的终端会自动 conda activate langchain_env
+
+    // 指定解释器路径(固定到 langchain_env 的 python.exe)
+    "python.defaultInterpreterPath": "E:\\anaconda_install\\envs\\langchain_env\\python.exe",
+
+    // 新终端自动激活所选环境
+    "python.terminal.activateEnvironment": true,
+
+    // 当前已打开的终端也跟随激活(切换解释器后无需重开终端)
+    "python.terminal.activateEnvInCurrentTerminal": true,
+
+    // 告诉 Python 扩展 conda 的位置(用于执行 conda activate)
+    "python.condaPath": "E:\\anaconda_install\\Scripts\\conda.exe"
+}

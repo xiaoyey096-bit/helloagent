@@ -1,0 +1,385 @@
+<!--
+  功能: 第二章「智能体发展史」要点清单——双栏对照版(左:要点术语 / 右:答案与解释),用于自测回忆。
+  创建日期: 2026-08-13
+  输入: datawhale hello-agents 教程第二章原文(已读取)
+  输出: 单页 HTML,双栏表格,可浏览器打开,亦可打印为 PDF
+  说明: 全部样式内联、无外部依赖;适配亮/暗主题;响应式:窄屏自动变为单栏堆叠
+-->
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>第二章 智能体发展史 · 要点清单</title>
+<style>
+  :root{
+    --bg:#fbfaf7; --fg:#1f2328; --muted:#6b7280; --rule:#e5e3dd;
+    --lhs:#fff; --lhs-bg:#f4f2ec; --accent:#2f5fa6; --code-bg:#f3f1ea;
+    --row-alt:#faf9f5;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#15171c; --fg:#e6e6e6; --muted:#9aa3af; --rule:#2a2e36;
+      --lhs:#0f1116; --lhs-bg:#1b1f26; --accent:#8ab4f8; --code-bg:#1e222a;
+      --row-alt:#1a1d23;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#15171c; --fg:#e6e6e6; --muted:#9aa3af; --rule:#2a2e36;
+    --lhs:#0f1116; --lhs-bg:#1b1f26; --accent:#8ab4f8; --code-bg:#1e222a;
+    --row-alt:#1a1d23;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0; background:var(--bg); color:var(--fg);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",Roboto,Helvetica,Arial,sans-serif;
+    line-height:1.75; font-size:16px; -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1180px; margin:0 auto; padding:0 22px 120px}
+  header.top{
+    position:sticky; top:0; z-index:20; background:var(--bg); border-bottom:1px solid var(--rule);
+    backdrop-filter:saturate(1.2) blur(6px); margin:0 -22px 0; padding:14px 22px;
+  }
+  .top h1{margin:0 0 4px; font-size:1.18rem; font-weight:700}
+  .top p{margin:0; color:var(--muted); font-size:.82rem}
+  .toolbar{margin-top:8px; display:flex; gap:6px; flex-wrap:wrap}
+  .toolbar button{
+    font:inherit; font-size:.78rem; cursor:pointer; border:1px solid var(--rule);
+    background:var(--lhs-bg); color:var(--fg); padding:4px 10px; border-radius:999px; transition:.15s;
+  }
+  .toolbar button:hover{border-color:var(--accent); color:var(--accent)}
+  nav.toc{margin:22px 0 6px; padding:14px 16px; border:1px solid var(--rule); border-radius:10px; background:var(--lhs-bg)}
+  nav.toc strong{font-size:.8rem; color:var(--muted); display:block; margin-bottom:6px; letter-spacing:.04em}
+  nav.toc a{text-decoration:none; color:var(--fg); font-size:.88rem; margin-right:14px; display:inline-block; padding:2px 0}
+  nav.toc a:hover{color:var(--accent)}
+  section{margin-top:42px; scroll-margin-top:96px}
+  section > h2{font-size:1.28rem; margin:0 0 4px; padding-bottom:8px; border-bottom:2px solid var(--accent)}
+  section > .sec-sub{color:var(--muted); font-size:.85rem; margin:0 0 18px}
+  table.grid{width:100%; border-collapse:collapse; border:1px solid var(--rule); border-radius:10px; overflow:hidden}
+  table.grid th{text-align:left; font-size:.78rem; letter-spacing:.06em; color:var(--muted); font-weight:600; padding:9px 14px; background:var(--lhs-bg); border-bottom:1px solid var(--rule)}
+  table.grid td{vertical-align:top; padding:13px 15px; border-top:1px solid var(--rule)}
+  table.grid tr:first-child td{border-top:none}
+  td.lhs{width:34%; min-width:230px; background:var(--lhs-bg); font-weight:600; font-size:.98rem}
+  td.lhs .leaf{display:block; font-weight:400; color:var(--muted); font-size:.86rem; margin-top:3px}
+  td.rhs{font-size:.94rem}
+  td.rhs p{margin:.3em 0}
+  td.rhs p:first-child{margin-top:0}
+  td.rhs p:last-child{margin-bottom:0}
+  td.rhs .term{font-weight:700; color:var(--accent)}
+  td.rhs code{font-family:"SF Mono",Consolas,Menlo,monospace; font-size:.86em; background:var(--code-bg); padding:1px 6px; border-radius:4px}
+  td.rhs ul{margin:.3em 0; padding-left:1.3em}
+  td.rhs li{margin:.18em 0}
+  td.rhs .formula{font-family:"SF Mono",Consolas,Menlo,monospace; font-size:.9em; background:var(--code-bg); padding:7px 11px; border-radius:6px; display:block; margin:6px 0; overflow-x:auto}
+  table.grid tbody tr:nth-child(even) td.rhs{background:var(--row-alt)}
+  body.hide-rhs td.rhs{display:none}
+  body.hide-rhs td.lhs{width:100%; background:var(--lhs-bg)}
+  body.hide-rhs .toolbar button#btnHide{background:var(--accent); color:#fff; border-color:var(--accent)}
+  footer{margin-top:60px; padding-top:18px; border-top:1px solid var(--rule); color:var(--muted); font-size:.8rem}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap" style="padding:0">
+    <h1>第二章 智能体发展史 · 要点清单</h1>
+    <p>左栏 = 要点术语(用来回忆) · 右栏 = 答案与解释(用来核对) · 顶部「隐藏右栏」可进入纯自测模式</p>
+    <div class="toolbar">
+      <button id="btnHide">隐藏 / 显示右栏</button>
+      <button onclick="window.print()">打印 / 导出 PDF</button>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+<nav class="toc">
+  <strong>章节导航</strong>
+  <a href="#s1">2.1 符号与逻辑的早期智能体</a>
+  <a href="#s2">2.2 基于规则的聊天机器人</a>
+  <a href="#s3">2.3 心智社会</a>
+  <a href="#s4">2.4 学习范式演进与现代智能体</a>
+</nav>
+
+<!-- ====================== 2.1 ====================== -->
+<section id="s1">
+  <h2>2.1 基于符号与逻辑的早期智能体</h2>
+  <p class="sec-sub">符号主义 · 物理符号系统假说 · 专家系统 · SHRDLU · 四大根本挑战</p>
+
+  <table class="grid">
+    <thead><tr><th>要点术语</th><th>答案与解释</th></tr></thead>
+    <tbody>
+
+      <tr>
+        <td class="lhs">符号主义 (Symbolicism)<span class="leaf">逻辑AI / 传统AI</span></td>
+        <td class="rhs">
+          <p>AI 的第一个重要范式。核心信念:<b>智能行为的核心是基于一套明确规则对符号进行操作</b>。智能体是「物理符号系统」——用内部符号表示外部世界,通过逻辑推理规划行动。「智慧」<b>完全来源于设计者预先编码的知识库和推理规则</b>,而非自主学习。</p>
+        </td>
+      </tr>
+
+      <tr>
+        <td class="lhs">物理符号系统假说 (PSSH)<span class="leaf">Newell & Simon 1976 · 两大论断</span></td>
+        <td class="rhs">
+          <p>符号主义时代的理论基石。大胆宣称:<b>智能的本质,就是符号的计算与处理</b>。两个核心论断:</p>
+          <ul>
+            <li><b>充分性论断</b>:任何物理符号系统,都<b>具备</b>产生通用智能行为的充分手段;</li>
+            <li><b>必要性论断</b>:任何能展现通用智能行为的系统,其本质<b>必然是</b>物理符号系统。</li>
+          </ul>
+          <p>物理符号系统 = 一组可区分的<b>符号</b> + 一系列对符号操作的<b>过程</b>(创建/修改/复制/销毁符号结构)。深远影响:把对「心智」的哲学研究转化为可工程化实现的具体问题。</p>
+        </td>
+      </tr>
+
+      <tr>
+        <td class="lhs">专家系统 (Expert System)<span class="leaf">知识库 + 推理机</span></td>
+        <td class="rhs">
+          <p>符号主义最重要、最成功的应用。核心目标:模拟人类专家在特定领域解决问题的能力。体现<b>知识与推理相分离</b>的设计思想(符号主义重要特征)。两大核心组件:</p>
+          <ul>
+            <li><b>知识库 (Knowledge Base)</b>:存放专家知识。常用知识表示方法是<b>产生式规则 (Production Rules)</b>——一系列「IF-THEN」条件语句。</li>
+            <li><b>推理机 (Inference Engine)</b>:核心计算引擎,根据事实在知识库找规则推导结论。两种工作方式:
+              <ul>
+                <li><b>正向链 (Forward Chaining)</b>:从已知事实出发,匹配 IF 触发 THEN,直至推出目标。<b>数据驱动</b>;</li>
+                <li><b>反向链 (Backward Chaining)</b>:从假设目标出发,反推需要的子目标,递归证明。<b>目标驱动</b>。</li>
+              </ul>
+            </li>
+          </ul>
+        </td>
+      </tr>
+
+      <tr>
+        <td class="lhs">MYCIN<span class="leaf">反向链 · 置信因子 CF</span></td>
+        <td class="rhs">
+          <p>史上最著名的专家系统之一(斯坦福,1970s),辅助诊断细菌性血液感染、推荐抗生素。</p>
+          <ul>
+            <li><b>工作原理</b>:问答式交互收集症状;知识库约 600 条 IF-THEN 规则;推理机主要用<b>反向链</b>(从「确定致病菌」目标反推证据)。</li>
+            <li><b>不确定性处理</b>:重要创新 <b>置信因子 (Certainty Factor, CF)</b>——用 −1 到 1 的数值表示结论可信度,比布尔逻辑更贴近现实。</li>
+            <li><b>成就</b>:血液感染诊断表现超非专业医生、达专家水平,雄辩证明 PSSH 有效性,为 AI 商业化铺路。</li>
+          </ul>
+        </td>
+      </tr>
+
+      <tr>
+        <td class="lhs">SHRDLU<span class="leaf">积木世界 · 综合性智能典范</span></td>
+        <td class="rhs">
+          <p>Winograd 1968-1970 开发。在「积木世界」(含积木和虚拟机械臂的三维空间)中用自然语言流畅交互的综合性智能体。首次将多个 AI 模块(语言解析/规划/记忆)集成于统一系统并协同。三大能力:</p>
+          <ul>
+            <li><b>自然语言理解</b>:解析复杂歧义句,支持<b>指代消解</b>(the one you are holding)和<b>上下文记忆</b>;</li>
+            <li><b>规划与行动</b>:自主规划动作序列(先移开绿积木再放蓝积木);</li>
+            <li><b>记忆与问答</b>:能问世界状态、行为历史、甚至行为动机(Why? → BECAUSE YOU ASKED ME TO)。</li>
+          </ul>
+          <p><b>历史地位</b>:综合性智能典范;普及微观世界研究方法;其能力局限于积木世界也引发对「符号处理 vs 真正理解」的长期思辨。</p>
+        </td>
+      </tr>
+
+      <tr>
+        <td class="lhs">符号主义的根本挑战<span class="leaf">知识获取瓶颈 · 常识问题 · 框架问题 · 脆弱性</span></td>
+        <td class="rhs">
+          <p>从微观世界走向开放现实世界时遇到的两大类固有难题:</p>
+          <p><b>（1）常识知识与知识获取瓶颈</b></p>
+          <ul>
+            <li><b>知识获取瓶颈</b>:知识需专家+知识工程师繁琐访谈提炼编码,成本高、难规模化;专家的内隐直觉知识很难表达为 IF-THEN。</li>
+            <li><b>常识问题</b>:人类依赖庞大常识背景(水是湿的),符号系统除非明确编码否则一无所知。<b>Cyc 项目</b>历经数十年成效有限。</li>
+          </ul>
+          <p><b>（2）框架问题与系统脆弱性</b></p>
+          <ul>
+            <li><b>框架问题 (Frame Problem)</b>:动态世界中,执行动作后如何高效判断<b>哪些事物未变</b>是逻辑难题;显式声明所有不变状态计算上不可行。</li>
+            <li><b>系统脆弱性 (Brittleness)</b>:完全依赖预设规则,遇到规则外微小变化即<b>完全失灵</b>,无法像人类灵活变通。SHRDLU 之成功正因运行在规则完备的封闭世界。</li>
+          </ul>
+        </td>
+      </tr>
+
+    </tbody>
+  </table>
+</section>
+
+<!-- ====================== 2.2 ====================== -->
+<section id="s2">
+  <h2>2.2 构建基于规则的聊天机器人</h2>
+  <p class="sec-sub">ELIZA · 模式匹配与文本替换 · 规则驱动的三大局限</p>
+
+  <table class="grid">
+    <thead><tr><th>要点术语</th><th>答案与解释</th></tr></thead>
+    <tbody>
+
+      <tr>
+        <td class="lhs">ELIZA<span class="leaf">Weizenbaum 1966 · DOCTOR 脚本</span></td>
+        <td class="rhs">
+          <p>MIT 的 Weizenbaum 1966 发布,早期 NLP 著名尝试。是一个可执行不同「脚本」的框架,最成功的脚本是 <b>DOCTOR</b>,模仿罗杰斯学派<b>非指导性心理治疗师</b>。</p>
+          <p><b>设计思想</b>:从不正面回答或提供信息,而是识别用户输入中的<b>关键词</b>,应用预设转换规则,把陈述转成开放式提问。魏泽鲍姆本意是证明:用简单句式转换,机器<b>在完全不理解内容的情况下</b>能营造「智能/共情」的假象。却意外引发「<b>ELIZA 效应</b>」——许多人深信它能理解自己。</p>
+        </td>
+      </tr>
+
+      <tr>
+        <td class="lhs">模式匹配与文本替换<span class="leaf">四步算法</span></td>
+        <td class="rhs">
+          <p>ELIZA 算法基于<b>模式匹配 + 文本替换</b>,四步:</p>
+          <ul>
+            <li><b>① 关键词识别与排序</b>:为每个关键词设优先级,输入含多个关键词时选最高优先级规则;</li>
+            <li><b>② 分解规则</b>:用带通配符 <code>*</code> 的规则捕获句子其余部分(如 <code>* my *</code>);</li>
+            <li><b>③ 重组规则</b>:从关联的一组重组规则中(通常随机)选一条生成回应,可用上一步捕获内容;</li>
+            <li><b>④ 代词转换</b>:重组前做简单代词转换(<code>I→you</code>, <code>my→your</code>)维持连贯。</li>
+          </ul>
+          <p>本质:把复杂 NLP 问题简化为可操作的、基于规则的模式匹配游戏。</p>
+        </td>
+      </tr>
+
+      <tr>
+        <td class="lhs">规则驱动系统的局限<span class="leaf">无语义理解 · 无状态 · 规则爆炸</span></td>
+        <td class="rhs">
+          <p>ELIZA 实践直接印证了 2.1.4 的符号主义挑战,三大局限:</p>
+          <ul>
+            <li><b>缺乏语义理解</b>:不理解词义。<code>I am not happy</code> 仍机械匹配 <code>I am (.*)</code> 生成语义不通回应(不懂否定词 not);</li>
+            <li><b>无上下文记忆</b>:系统是<b>无状态 (Stateless)</b>,每次回应只基于当前单句,无法连贯多轮对话;</li>
+            <li><b>规则扩展性问题</b>:增加规则导致<b>规则库规模爆炸</b>,规则间冲突与优先级管理极复杂,最终难以维护。</li>
+          </ul>
+          <p>核心矛盾:看似智能的表现完全依赖预先编码的规则;面对真实语言无限可能性,穷举式方法<b>注定不可扩展</b>——没有真正理解,只在执行符号操作,这正是脆弱性根源。</p>
+        </td>
+      </tr>
+
+    </tbody>
+  </table>
+</section>
+
+<!-- ====================== 2.3 ====================== -->
+<section id="s3">
+  <h2>2.3 马文·明斯基的心智社会</h2>
+  <p class="sec-sub">对单一整体智能的反思 · 协作体的智能 · 涌现 · 启发多智能体系统</p>
+
+  <table class="grid">
+    <thead><tr><th>要点术语</th><th>答案与解释</th></tr></thead>
+    <tbody>
+
+      <tr>
+        <td class="lhs">对单一整体智能的反思<span class="leaf">Top-down 中央处理器的失败</span></td>
+        <td class="rhs">
+          <p>符号主义局限日益明显:专家系统无儿童常识、SHRDLU 困于积木世界、ELIZA 对内容一无所知。它们都遵循<b>自上而下 (Top-down)</b> 设计:一个全知全能的<b>中央处理器</b>按统一逻辑规则决策。</p>
+          <p>明斯基提出根本问题:「理解」是单一能力还是数十种心智过程的协同?「常识」是百万条规则的庞大知识库,还是分布式经验网络?是否应承认智能是「不完美」的、由功能各异甚至冲突的简单部分组成的大杂烩?强行把多样化心智塞进僵化逻辑框架,正是早期 AI 停滞的根源。</p>
+          <p><b>名言</b>:「让我们智能的神奇戏法是什么?戏法就是没有戏法。智能的力量源于我们巨大的多样性,而非任何单一完美的原则。」</p>
+        </td>
+      </tr>
+
+      <tr>
+        <td class="lhs">心智社会 (Society of Mind)<span class="leaf">Agent / Agency / 涌现</span></td>
+        <td class="rhs">
+          <p>明斯基不再把心智当金字塔层级,而是看作<b>扁平化、充满互动协作的「社会」</b>。三个关键概念:</p>
+          <ul>
+            <li><b>智能体 (Agent)</b>:极简单、专门化的心智过程,自身「无心」(如识别线条的 <code>LINE-FINDER</code>、抓握的 <code>GRASP</code>);</li>
+            <li><b>机构 (Agency)</b>:一组协同工作的智能体,完成更复杂任务(如搭积木的 <code>BUILD</code> 由 SEE/FIND/GET/PUT 组成),通过<b>去中心化的激活与抑制信号</b>相互影响;</li>
+            <li><b>涌现 (Emergence)</b>:复杂有目的的智能行为,并非高级智能体预先规划,而是从大量简单底层智能体的<b>局部交互中自发产生</b>。</li>
+          </ul>
+          <p><b>积木塔例</b>:目标激活 <code>BUILD-TOWER</code> → <code>BUILDER</code>(循环)→ <code>ADD-BLOCK</code> → <code>FIND/GET/PUT</code> → 更底层 <code>SEE-SHAPE/REACH/GRASP</code>。没有任何智能体拥有全局规划,但通过简单激活抑制规则,搭塔行为自然涌现。</p>
+        </td>
+      </tr>
+
+      <tr>
+        <td class="lhs">对多智能体系统的启发<span class="leaf">去中心化 / 涌现式计算 / 社会性</span></td>
+        <td class="rhs">
+          <p>心智社会为<b>分布式 AI (DAI)</b> 和<b>多智能体系统 (MAS)</b> 提供了重要概念基础。核心追问:心智内部智能靠大量简单智能体协作涌现,那么多个物理上分离的计算实体间,是否也能协作涌现出更强的「<b>群体智能</b>」?三方面直接启发 MAS:</p>
+          <ul>
+            <li><b>去中心化控制</b>:不存在中央控制器 → MAS 继承,研究无中心节点的协调机制和任务分配;</li>
+            <li><b>涌现式计算</b>:复杂解可从简单局部交互自发产生 → 启发蚁群算法、粒子群优化等;</li>
+            <li><b>智能体的社会性</b>:强调交互(激活/抑制)→ MAS 扩展为研究通信语言(ACL)、交互协议(契约网)、协商、信任、组织结构,正式开启 MAS 研究序幕。</li>
+          </ul>
+        </td>
+      </tr>
+
+    </tbody>
+  </table>
+</section>
+
+<!-- ====================== 2.4 ====================== -->
+<section id="s4">
+  <h2>2.4 学习范式的演进与现代智能体</h2>
+  <p class="sec-sub">联结主义 · 强化学习 · 预训练 · LLM 智能体 · 三大思潮</p>
+
+  <table class="grid">
+    <thead><tr><th>要点术语</th><th>答案与解释</th></tr></thead>
+    <tbody>
+
+      <tr>
+        <td class="lhs">联结主义 (Connectionism)<span class="leaf">三大核心思想</span></td>
+        <td class="rhs">
+          <p>对符号主义局限的直接回应,20世纪80年代重新兴起。<b>自下而上</b>的方法,灵感来自生物大脑神经网络。核心思想:</p>
+          <ul>
+            <li><b>知识的分布式表示</b>:知识不以符号/规则存于知识库,而以<b>连接权重</b>形式分布式存储在大量简单处理单元(人工神经元)的连接间;</li>
+            <li><b>简单的处理单元</b>:每个神经元只做简单计算(加权输入 → 激活函数 → 输出);</li>
+            <li><b>通过学习调整权重</b>:智能来自「学习」——接触大量样本,按算法(如<b>反向传播</b>)自动迭代调整权重,使输出接近目标。</li>
+          </ul>
+          <p>根本转变:符号主义把人类知识显式编码给机器;联结主义则创造能像人类一样<b>学习</b>知识的机器。深度学习成功为智能体赋予强大感知和模式识别能力。</p>
+        </td>
+      </tr>
+
+      <tr>
+        <td class="lhs">强化学习 (RL)<span class="leaf">五要素 · 感知-行动-学习闭环 · 累积奖励</span></td>
+        <td class="rhs">
+          <p>专注解决<b>序贯决策</b>问题。不直接从标注静态数据学,而是通过与环境的直接交互在「<b>试错</b>」中学习如何<b>最大化长期收益</b>(AlphaGo 自我对弈是经典)。</p>
+          <p><b>五要素</b>:<b>智能体</b>(学习者/决策者)、<b>环境</b>(交互对象)、<b>状态 S</b>(环境某时刻描述,决策依据)、<b>行动 A</b>(可采取的操作)、<b>奖励 R</b>(评价行动好坏的标量信号)。</p>
+          <p><b>闭环</b>:① 观察状态 S_t → ② 据<b>策略 π</b>(状态到行动的映射)选行动 A_t 执行 → ③ 环境转到新状态 S_{t+1} → ④ 反馈即时奖励 R_{t+1} → ⑤ 用反馈更新优化策略。</p>
+          <p><b>学习目标</b>:非最大化即时奖励,而是最大化从当前到未来的<b>累积奖励(回报 Return)</b>——需有「远见」,可能牺牲眼前奖励换未来更大奖励(围棋弃子)。</p>
+        </td>
+      </tr>
+
+      <tr>
+        <td class="lhs">预训练 (Pre-training)<span class="leaf">预训练-微调范式 · 自监督学习</span></td>
+        <td class="rhs">
+          <p>解决 RL 智能体「从零开始、缺先验知识」的问题。方案在 NLP 领域浮现,核心是<b>基于大规模数据的预训练</b>。<b>预训练-微调范式</b>两步:</p>
+          <ul>
+            <li><b>① 预训练阶段</b>:在互联网级海量文本上,用<b>自监督学习</b>训练超大规模神经网络。目标非特定任务,而是学语言内在规律、语法、事实、上下文逻辑(最常见目标:「<b>预测下一个词</b>」);</li>
+            <li><b>② 微调阶段</b>:针对下游任务,用少量标注数据微调模型适应任务。</li>
+          </ul>
+          <p>意义:传统 NLP 为单一任务从零训练(知识面窄、难泛化、需大量标注);预训练范式彻底改变现状。</p>
+        </td>
+      </tr>
+
+      <tr>
+        <td class="lhs">LLM 的涌现能力<span class="leaf">上下文学习 · 思维链</span></td>
+        <td class="rhs">
+          <p>在数万亿 token 上预训练,LLM 权重构建了世界知识的<b>隐式模型</b>,以全新方式解决了符号主义最棘手的「<b>知识获取瓶颈</b>」。规模跨越阈值后展现<b>涌现能力</b>:</p>
+          <ul>
+            <li><b>上下文学习 (In-context Learning)</b>:不调权重,仅在输入提供几个示例(Few-shot)甚至零示例(Zero-shot)就能完成新任务;</li>
+            <li><b>思维链 (CoT) 推理</b>:引导模型在回答复杂问题前先输出一步步推理,显著提升逻辑/算术/常识推理准确性。</li>
+          </ul>
+          <p>标志:LLM 不再只是语言模型,演变成兼具<b>海量知识库 + 通用推理引擎</b>双重角色的组件。</p>
+        </td>
+      </tr>
+
+      <tr>
+        <td class="lhs">LLM 驱动的智能体<span class="leaf">四大核心组件 · 闭环工作流</span></td>
+        <td class="rhs">
+          <p>以 LLM 为核心的智能体是新范式,能感知、规划、决策、执行。<b>四大核心组件</b>(协同的持续迭代闭环):</p>
+          <ul>
+            <li><b>① 感知模块</b>:从环境接收原始输入形成<b>观察</b>;</li>
+            <li><b>② 规划模块 + LLM</b>(认知核心):规划模块用<b>反思 (Reflection)</b>和<b>自我批判 (Self-criticism)</b>分解目标;LLM 与<b>记忆模块</b>交互整合历史,深度推理决策下一步(常为<b>工具调用</b>);</li>
+            <li><b>③ 执行模块</b>:解析指令,从<b>工具箱</b>选合适工具(代码执行器/搜索/API)与环境交互 = 行动;</li>
+            <li><b>④ 记忆模块</b>:行动产生工具结果和新环境状态构成新观察,LLM 据此<b>更新记忆</b>,启动下一轮「感知-思考-行动」循环。</li>
+          </ul>
+        </td>
+      </tr>
+
+      <tr>
+        <td class="lhs">三大思潮 / 发展节点<span class="leaf">符号主义 / 联结主义 / 行为主义</span></td>
+        <td class="rhs">
+          <p>AI 体发展是三大核心思想流派半个多世纪<b>交织、竞争、融合</b>的历程:</p>
+          <ul>
+            <li><b>符号主义 (Symbolism)</b>:Simon、Minsky 代表,智能核心在对符号的操作与逻辑推理。催生 SHRDLU、专家系统、国际象棋「深蓝」;</li>
+            <li><b>联结主义 (Connectionism)</b>:灵感源于大脑神经网络。Hinton 等推动反向传播奠定复苏基础,深度学习时代(CNN/Transformer)成主流;</li>
+            <li><b>行为主义 (Behaviorism)</b>:强调与环境互动试错学最优策略,现代化身为<b>强化学习</b>。从 TD-Gammon 到击败人类的 AlphaGo。</li>
+          </ul>
+          <p><b>融合</b>:2020s 起三大思潮深度融合——GPT 系列本身是联结主义产物,却成为执行符号推理、工具调用、规划决策的核心「大脑」,形成<b>神经-符号结合</b>的现代智能体架构。</p>
+        </td>
+      </tr>
+
+    </tbody>
+  </table>
+</section>
+
+<footer>
+  数据来源:datawhale hello-agents 教程第二章《智能体发展史》。 · 左栏用于回忆自测,右栏用于核对。
+</footer>
+</div>
+
+<script>
+  document.getElementById('btnHide').addEventListener('click', function(){
+    document.body.classList.toggle('hide-rhs');
+    this.classList.toggle('active');
+  });
+</script>
+</body>
+</html>

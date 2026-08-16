@@ -1,0 +1,393 @@
+<!--
+  功能: 第一章「初识智能体」要点清单——双栏对照版(左:要点术语 / 右:答案与解释),用于自测回忆。
+  创建日期: 2026-08-13
+  输入: datawhale hello-agents 教程第一章原文(已读取)
+  输出: 单页 HTML,双栏表格,可浏览器打开,亦可打印为 PDF
+  说明: 全部样式内联、无外部依赖;适配亮/暗主题;响应式:窄屏自动变为单栏堆叠
+-->
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>第一章 初识智能体 · 要点清单</title>
+<style>
+  :root{
+    --bg:#fbfaf7; --fg:#1f2328; --muted:#6b7280; --rule:#e5e3dd;
+    --lhs:#fff; --lhs-bg:#f4f2ec; --accent:#2f5fa6; --code-bg:#f3f1ea;
+    --row-alt:#faf9f5;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#15171c; --fg:#e6e6e6; --muted:#9aa3af; --rule:#2a2e36;
+      --lhs:#0f1116; --lhs-bg:#1b1f26; --accent:#8ab4f8; --code-bg:#1e222a;
+      --row-alt:#1a1d23;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#15171c; --fg:#e6e6e6; --muted:#9aa3af; --rule:#2a2e36;
+    --lhs:#0f1116; --lhs-bg:#1b1f26; --accent:#8ab4f8; --code-bg:#1e222a;
+    --row-alt:#1a1d23;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0; background:var(--bg); color:var(--fg);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",Roboto,Helvetica,Arial,sans-serif;
+    line-height:1.75; font-size:16px; -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1180px; margin:0 auto; padding:0 22px 120px}
+  header.top{
+    position:sticky; top:0; z-index:20; background:var(--bg); border-bottom:1px solid var(--rule);
+    backdrop-filter:saturate(1.2) blur(6px); margin:0 -22px 0; padding:14px 22px;
+  }
+  .top h1{margin:0 0 4px; font-size:1.18rem; font-weight:700}
+  .top p{margin:0; color:var(--muted); font-size:.82rem}
+  .toolbar{margin-top:8px; display:flex; gap:6px; flex-wrap:wrap}
+  .toolbar button{
+    font:inherit; font-size:.78rem; cursor:pointer; border:1px solid var(--rule);
+    background:var(--lhs-bg); color:var(--fg); padding:4px 10px; border-radius:999px; transition:.15s;
+  }
+  .toolbar button:hover{border-color:var(--accent); color:var(--accent)}
+  nav.toc{margin:22px 0 6px; padding:14px 16px; border:1px solid var(--rule); border-radius:10px; background:var(--lhs-bg)}
+  nav.toc strong{font-size:.8rem; color:var(--muted); display:block; margin-bottom:6px; letter-spacing:.04em}
+  nav.toc a{text-decoration:none; color:var(--fg); font-size:.88rem; margin-right:14px; display:inline-block; padding:2px 0}
+  nav.toc a:hover{color:var(--accent)}
+  section{margin-top:42px; scroll-margin-top:96px}
+  section > h2{font-size:1.28rem; margin:0 0 4px; padding-bottom:8px; border-bottom:2px solid var(--accent)}
+  section > .sec-sub{color:var(--muted); font-size:.85rem; margin:0 0 18px}
+  table.grid{width:100%; border-collapse:collapse; border:1px solid var(--rule); border-radius:10px; overflow:hidden}
+  table.grid th{text-align:left; font-size:.78rem; letter-spacing:.06em; color:var(--muted); font-weight:600; padding:9px 14px; background:var(--lhs-bg); border-bottom:1px solid var(--rule)}
+  table.grid td{vertical-align:top; padding:13px 15px; border-top:1px solid var(--rule)}
+  table.grid tr:first-child td{border-top:none}
+  td.lhs{width:34%; min-width:230px; background:var(--lhs-bg); font-weight:600; font-size:.98rem}
+  td.lhs .leaf{display:block; font-weight:400; color:var(--muted); font-size:.86rem; margin-top:3px}
+  td.rhs{font-size:.94rem}
+  td.rhs p{margin:.3em 0}
+  td.rhs p:first-child{margin-top:0}
+  td.rhs p:last-child{margin-bottom:0}
+  td.rhs .term{font-weight:700; color:var(--accent)}
+  td.rhs code{font-family:"SF Mono",Consolas,Menlo,monospace; font-size:.86em; background:var(--code-bg); padding:1px 6px; border-radius:4px}
+  td.rhs ul{margin:.3em 0; padding-left:1.3em}
+  td.rhs li{margin:.18em 0}
+  td.rhs .formula{font-family:"SF Mono",Consolas,Menlo,monospace; font-size:.9em; background:var(--code-bg); padding:7px 11px; border-radius:6px; display:block; margin:6px 0; overflow-x:auto}
+  table.grid tbody tr:nth-child(even) td.rhs{background:var(--row-alt)}
+  body.hide-rhs td.rhs{display:none}
+  body.hide-rhs td.lhs{width:100%; background:var(--lhs-bg)}
+  body.hide-rhs .toolbar button#btnHide{background:var(--accent); color:#fff; border-color:var(--accent)}
+  footer{margin-top:60px; padding-top:18px; border-top:1px solid var(--rule); color:var(--muted); font-size:.8rem}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap" style="padding:0">
+    <h1>第一章 初识智能体 · 要点清单</h1>
+    <p>左栏 = 要点术语(用来回忆) · 右栏 = 答案与解释(用来核对) · 顶部「隐藏右栏」可进入纯自测模式</p>
+    <div class="toolbar">
+      <button id="btnHide">隐藏 / 显示右栏</button>
+      <button onclick="window.print()">打印 / 导出 PDF</button>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+<nav class="toc">
+  <strong>章节导航</strong>
+  <a href="#s1">1.1 什么是智能体</a>
+  <a href="#s2">1.2 构成与运行原理</a>
+  <a href="#s3">1.3 动手实现第一个智能体</a>
+  <a href="#s4">1.4 协作模式</a>
+</nav>
+
+<!-- ====================== 1.1 ====================== -->
+<section id="s1">
+  <h2>1.1 什么是智能体</h2>
+  <p class="sec-sub">定义与四要素 · 传统智能体演进 · LLM 新范式 · 三种分类维度</p>
+
+  <table class="grid">
+    <thead><tr><th>要点术语</th><th>答案与解释</th></tr></thead>
+    <tbody>
+
+      <tr>
+        <td class="lhs">智能体的定义<span class="leaf">四要素</span></td>
+        <td class="rhs">
+          <p>能通过<b>传感器</b>感知<b>环境</b>,并<b>自主</b>地通过<b>执行器</b>采取<b>行动</b>以达成特定目标的实体。</p>
+          <p><b>四个基本要素</b>:</p>
+          <ul>
+            <li><b>环境 (Environment)</b>:智能体所处的外部世界(道路/金融市场等);</li>
+            <li><b>传感器 (Sensors)</b>:感知能力的延伸(摄像头/雷达/API 数据流);</li>
+            <li><b>执行器 (Actuators)</b>:改变环境的手段(机械臂等物理设备 / 调用服务等虚拟工具);</li>
+            <li><b>自主性 (Autonomy)</b>:真正赋予「智能」的核心——能基于感知和内部状态独立决策,而非被动执行预设指令。</li>
+          </ul>
+        </td>
+      </tr>
+
+      <tr>
+        <td class="lhs">传统智能体演进阶梯<span class="leaf">反应式 → 模型 → 目标 → 效用 → 学习</span></td>
+        <td class="rhs">
+          <p>一条「从简单到复杂、从被动反应到主动学习」的演进路线:</p>
+          <ul>
+            <li><b>① 反射智能体 (Simple Reflex)</b>:核心是「条件-动作」规则(自动恒温器)。只依赖当前感知,无记忆无预测,像数字化本能。</li>
+            <li><b>② 基于模型的反射智能体 (Model-Based)</b>:有内部<b>世界模型</b>,追踪无法直接感知的方面,有初级「记忆」(隧道中的自动驾驶)。</li>
+            <li><b>③ 基于目标的智能体 (Goal-Based)</b>:主动有预见地规划导向目标的行动(GPS 用 A* 算法规划路径)。</li>
+            <li><b>④ 基于效用的智能体 (Utility-Based)</b>:为每个状态赋效用值,在多冲突目标间权衡,最大化期望效用(最短+最省油+避开拥堵)。</li>
+            <li><b>⑤ 学习型智能体 (Learning Agent)</b>:含性能元件 + 学习元件,通过与环境互动自主学习修正策略;<b>强化学习 (RL)</b> 是其代表路径(AlphaGo Zero)。</li>
+          </ul>
+        </td>
+      </tr>
+
+      <tr>
+        <td class="lhs">LLM 驱动的新范式<span class="leaf">规划与推理 · 工具使用 · 动态修正</span></td>
+        <td class="rhs">
+          <p>以 <b>GPT</b> 为代表的 LLM 改变了智能体的核心决策机制。传统智能体能力源于<b>显式编程</b>(确定、有边界);LLM 智能体靠<b>海量数据预训练</b>获得<b>隐式世界模型</b>与<b>涌现能力</b>(灵活、通用)。</p>
+          <p>以「智能旅行助手」为例,体现三点:</p>
+          <ul>
+            <li><b>规划与推理</b>:把高层级目标分解为子任务(<code>确认偏好→查询信息→制定行程→预订</code>);</li>
+            <li><b>工具使用</b>:识别信息缺口,主动调用外部工具补全(调天气 API → 据雨天推荐室内活动);</li>
+            <li><b>动态修正</b>:把用户反馈(超预算)视为新约束,调整后续行动。</li>
+          </ul>
+          <p>核心转变:从「编写代码」转向「引导一个通用的『大脑』去规划、行动、学习」。</p>
+        </td>
+      </tr>
+
+      <tr>
+        <td class="lhs">分类维度①:内部决策架构<span class="leaf">反应式 / 模型式 / 目标 / 效用 + 学习元能力</span></td>
+        <td class="rhs">
+          <p>依据内部决策架构的复杂程度(《人工智能:一种现代方法》):从<b>反应式</b> → <b>模型式</b> → <b>基于目标</b> → <b>基于效用</b>。<b>学习能力</b>是可赋予上述所有类型的「元能力」。</p>
+        </td>
+      </tr>
+
+      <tr>
+        <td class="lhs">分类维度②:时间与反应性<span class="leaf">反应式 / 规划式 / 混合式</span></td>
+        <td class="rhs">
+          <p>关注智能体是<b>立即行动</b>还是<b>深思熟虑后规划</b>。核心权衡:追求速度的<b>反应性</b> vs 追求最优解的<b>规划性</b>。</p>
+          <ul>
+            <li><b>反应式 (Reactive)</b>:近乎即时响应、决策延迟低,感知→行动直接映射(安全气囊、高频交易)。优势是<b>速度快开销低</b>,代价是「短视」、易陷局部最优。</li>
+            <li><b>规划式 (Deliberative)</b>:行动前用世界模型探索未来可能性,评估行动序列后果找最佳路径(棋手预想十几步)。优势是战略远见,代价是<b>高昂的时间和计算成本</b>。</li>
+            <li><b>混合式 (Hybrid)</b>:结合两者。经典是分层设计(底层快速反应 + 高层审慎规划)。现代 LLM 智能体在「思考-行动-观察」循环中实现更灵活的混合。</li>
+          </ul>
+        </td>
+      </tr>
+
+      <tr>
+        <td class="lhs">分类维度③:知识表示<span class="leaf">符号主义 / 亚符号主义 / 神经符号主义</span></td>
+        <td class="rhs">
+          <p>探究智能体用以决策的知识以何种形式存在——AI 领域半世纪辩论的核心:</p>
+          <ul>
+            <li><b>符号主义 (Symbolic AI)</b>:智能源于对符号的逻辑操作(规则库/知识图谱)。优势:<b>透明可解释</b>(金融医疗高风险领域重要);致命弱点「<b>知识获取瓶颈</b>」——依赖完备规则,现实世界新情况即失灵。</li>
+            <li><b>亚符号主义 (Sub-symbolic / 连接主义)</b>:知识内隐分布在神经元网络中,从数据学统计模式(神经网络/深度学习)。优势:<b>模式识别强、抗噪声</b>;弱点是<b>黑箱</b>(无法解释为什么),纯逻辑推理差,会幻觉。</li>
+            <li><b>神经符号主义 (Neuro-Symbolic)</b>:融合两者,既像神经网络学习、又像符号系统推理。类比卡尼曼《思考,快与慢》:
+              <ul>
+                <li><b>系统 1</b>:快速、直觉、并行 ≈ 亚符号(模式识别);</li>
+                <li><b>系统 2</b>:缓慢、有条理、基于逻辑 ≈ 符号(推理)。</li>
+              </ul>
+              LLM 智能体是其绝佳范例:内核是神经网络,工作时却生成结构化中间步骤(思想/计划/API 调用这些符号)。</li>
+          </ul>
+        </td>
+      </tr>
+
+    </tbody>
+  </table>
+</section>
+
+<!-- ====================== 1.2 ====================== -->
+<section id="s2">
+  <h2>1.2 智能体的构成与运行原理</h2>
+  <p class="sec-sub">PEAS 任务环境 · 智能体循环 · Thought-Action-Observation 协议</p>
+
+  <table class="grid">
+    <thead><tr><th>要点术语</th><th>答案与解释</th></tr></thead>
+    <tbody>
+
+      <tr>
+        <td class="lhs">PEAS 模型<span class="leaf">任务环境定义</span></td>
+        <td class="rhs">
+          <p>用 <b>PEAS</b> 精确描述一个任务环境:</p>
+          <ul>
+            <li><b>P</b>erformance 性能度量(目标达成好坏的标准);</li>
+            <li><b>E</b>nvironment 环境(外部世界);</li>
+            <li><b>A</b>ctuators 执行器(改变环境的手段);</li>
+            <li><b>S</b>ensors 传感器(感知环境的途径)。</li>
+          </ul>
+        </td>
+      </tr>
+
+      <tr>
+        <td class="lhs">任务环境的复杂特性<span class="leaf">部分可观察 / 随机性 / 多智能体 / 序贯动态</span></td>
+        <td class="rhs">
+          <p>LLM 智能体所处数字环境的特性,直接影响设计:</p>
+          <ul>
+            <li><b>部分可观察</b>:无法一次获取全部信息(航班 API 只返回部分数据) → 需<b>记忆</b>和<b>探索</b>能力;</li>
+            <li><b>确定性 vs 随机性</b>:行动结果是否可预测。票价搜索是随机性环境(两次调用结果不同) → 需处理不确定性;</li>
+            <li><b>多智能体 (Multi-agent)</b>:环境中有其他行动者(其他用户、调价脚本) → 需快速响应;</li>
+            <li><b>序贯 + 动态</b>:序贯=当前动作影响未来;动态=环境自身会变化 → 「感知-思考-行动-观察」循环须快速灵活适应。</li>
+          </ul>
+        </td>
+      </tr>
+
+      <tr>
+        <td class="lhs">智能体循环<span class="leaf">Agent Loop · 感知-思考-行动-观察</span></td>
+        <td class="rhs">
+          <p>智能体通过一个持续循环与环境交互,这是其自主行为的基础。三阶段:</p>
+          <ul>
+            <li><b>① 感知 (Perception)</b>:通过传感器接收环境输入 = <b>观察 (Observation)</b>(用户指令或上一步行动的反馈)。</li>
+            <li><b>② 思考 (Thought)</b>:核心决策阶段(LLM 驱动),细分两环节:
+              <ul>
+                <li><b>规划 (Planning)</b>:基于观察和记忆,更新理解,制定/调整行动计划,可能分解子任务;</li>
+                <li><b>工具选择 (Tool Selection)</b>:从工具库选最适合下一步的工具及参数。</li>
+              </ul>
+            </li>
+            <li><b>③ 行动 (Action)</b>:通过执行器执行(调用代码解释器/搜索 API),改变环境状态。</li>
+          </ul>
+          <p>行动引起环境<b>状态变化</b>,产生新的<b>观察</b>反馈,被下一轮感知捕获 → 持续闭环。</p>
+        </td>
+      </tr>
+
+      <tr>
+        <td class="lhs">交互协议<span class="leaf">Thought / Action / Observation</span></td>
+        <td class="rhs">
+          <p>为让 LLM 有效驱动循环,需明确的<b>交互协议</b>。智能体输出是结构化文本,含两部分:</p>
+          <ul>
+            <li><b>Thought (思考)</b>:内部决策「快照」,用自然语言阐述如何分析情境、回顾观察、自我反思、规划下一步。</li>
+            <li><b>Action (行动)</b>:基于思考决定的具体操作,通常为函数调用。</li>
+          </ul>
+          <span class="formula">Thought: 用户想知道北京天气。我需要调用天气查询工具。<br>Action: get_weather("北京")</span>
+          <p><b>解析器 (Parser)</b>捕捉 Action 指令调用对应函数;返回的原始数据(如 JSON)被封装成简洁自然语言 <b>Observation</b>,作为下一轮输入。</p>
+        </td>
+      </tr>
+
+    </tbody>
+  </table>
+</section>
+
+<!-- ====================== 1.3 ====================== -->
+<section id="s3">
+  <h2>1.3 动手体验:5 分钟实现第一个智能体</h2>
+  <p class="sec-sub">智能旅行助手 · 提示工程 · 接入 LLM · 行动循环</p>
+
+  <table class="grid">
+    <thead><tr><th>要点术语</th><th>答案与解释</th></tr></thead>
+    <tbody>
+
+      <tr>
+        <td class="lhs">提示工程<span class="leaf">指令模板 / system_prompt</span></td>
+        <td class="rhs">
+          <p>驱动真实 LLM 的关键是<b>提示工程</b>:设计一个「指令模板」,告诉 LLM 它的角色、拥有的工具、如何格式化思考和行动,作为 <code>system_prompt</code> 传入。</p>
+          <p>模板要点:声明可用工具及签名;规定输出格式(<code>Thought: ... Action: ...</code>);Action 形式为「调用工具 function_name(arg="value")」或「结束任务 Finish[最终答案]」;每次只输出一对 Thought-Action。</p>
+        </td>
+      </tr>
+
+      <tr>
+        <td class="lhs">工具(Tool)</td>
+        <td class="rhs">
+          <p>工具是智能体与外部世界交互的「执行器」。本例两个工具:</p>
+          <ul>
+            <li><code>get_weather(city)</code>:调 <code>wttr.in</code> API 返回 JSON,格式化为自然语言;</li>
+            <li><code>get_attraction(city, weather)</code>:调 Tavily Search API 搜索景点推荐。</li>
+          </ul>
+          <p>所有工具函数放入字典 <code>available_tools</code> 供主循环调用。</p>
+        </td>
+      </tr>
+
+      <tr>
+        <td class="lhs">接入 LLM<span class="leaf">OpenAI 兼容接口 · 三凭证</span></td>
+        <td class="rhs">
+          <p>许多 LLM 服务商(OpenAI/Azure/Ollama/vLLM)都遵循<b>兼容 OpenAI 的接口规范</b>,带来标准化便利。实现通用客户端 <code>OpenAICompatibleClient</code> 可连任何兼容服务。</p>
+          <p>实例化需三信息:<code>API_KEY</code>、<code>BASE_URL</code>、<code>MODEL_ID</code>。其 <code>generate(prompt, system_prompt)</code> 方法构造 system+user 消息调用 chat completions 接口。</p>
+        </td>
+      </tr>
+
+      <tr>
+        <td class="lhs">执行行动循环<span class="leaf">主循环四步 · 最大循环次数</span></td>
+        <td class="rhs">
+          <p>主循环整合所有组件,驱动 LLM 决策。每轮:</p>
+          <ul>
+            <li>① 构建 prompt(拼接历史);</li>
+            <li>② 调 LLM 思考,正则截断多余的 Thought-Action 对;</li>
+            <li>③ 解析 Action:若 <code>Finish[…]</code> 则输出最终答案并 break;否则正则提取工具名和参数,从 <code>available_tools</code> 调用;</li>
+            <li>④ 记录 <code>Observation</code> 追加到历史,进入下一轮。</li>
+          </ul>
+          <p><b>设置最大循环次数(如 5)</b>是必要的防护:防止智能体陷入无限循环/反复调用工具。</p>
+          <p>核心是「工具」+「提示工程」的结合——这正是主流框架(LangChain/LlamaIndex)的设计精髓。</p>
+        </td>
+      </tr>
+
+      <tr>
+        <td class="lhs">智能体四项基本能力<span class="leaf">任务分解 / 工具调用 / 上下文理解 / 结果合成</span></td>
+        <td class="rhs">
+          <p>旅行助手案例演示了基于 Thought-Action-Observation 范式的四项能力:<b>任务分解</b>、<b>工具调用</b>、<b>上下文理解</b>、<b>结果合成</b>。通过循环不断迭代,把模糊意图转化为具体可执行步骤并达成目标。</p>
+        </td>
+      </tr>
+
+    </tbody>
+  </table>
+</section>
+
+<!-- ====================== 1.4 ====================== -->
+<section id="s4">
+  <h2>1.4 智能体应用的协作模式</h2>
+  <p class="sec-sub">开发者工具 · 自主协作者 · Workflow vs Agent</p>
+
+  <table class="grid">
+    <thead><tr><th>要点术语</th><th>答案与解释</th></tr></thead>
+    <tbody>
+
+      <tr>
+        <td class="lhs">作为开发者工具<span class="leaf">GitHub Copilot · Claude Code · Trae · Cursor</span></td>
+        <td class="rhs">
+          <p>智能体作为强大辅助工具<b>增强而非取代</b>开发者,自动化繁琐重复任务。代表产品:</p>
+          <ul>
+            <li><b>GitHub Copilot</b>:GitHub+OpenAI,深度集成 VS Code,以代码自动补全闻名,有 Copilot Chat 对话编程;</li>
+            <li><b>Claude Code</b>:Anthropic,终端中用自然语言编码,理解完整代码库,支持 headless 无交互模式(CI/hooks/脚本);</li>
+            <li><b>Trae</b>:新兴工具,智能代码生成与优化,轻量快速响应,适合频繁迭代/原型;</li>
+            <li><b>Cursor</b>:AI <b>原生</b>代码编辑器(非插件),设计之初就以 AI 交互为核心,强调让 AI 理解整个代码库上下文。</li>
+          </ul>
+        </td>
+      </tr>
+
+      <tr>
+        <td class="lhs">作为自主协作者<span class="leaf">目标-委托 · 三种架构范式</span></td>
+        <td class="rhs">
+          <p>把高层级目标<b>委托</b>给智能体,它像项目成员独立规划、推理、执行、反思直到交付。关系从「命令-执行」演变为「<b>目标-委托</b>」。代表框架:BabyAGI、AutoGPT、CrewAI、AutoGen、MetaGPT、LangGraph。三种主流架构范式:</p>
+          <ul>
+            <li><b>① 单智能体自主循环</b>(如 AgentGPT):通用智能体通过「思考-规划-执行-反思」闭环自我提示迭代;</li>
+            <li><b>② 多智能体协作</b>(最主流):模拟人类团队。细分:
+              <ul>
+                <li><b>角色扮演式对话</b>(CAMEL):为两个智能体设角色和沟通协议;</li>
+                <li><b>组织化工作流</b>(MetaGPT/CrewAI):模拟分工明确的虚拟团队(软件公司/咨询小组),各有职责和 SOP;AutoGen/AgentScope 提供更灵活的交互网络。</li>
+              </ul>
+            </li>
+            <li><b>③ 高级控制流架构</b>(LangGraph):把执行过程建模为<b>状态图 (State Graph)</b>,灵活可靠地实现循环、分支、回溯、人工介入。</li>
+          </ul>
+        </td>
+      </tr>
+
+      <tr>
+        <td class="lhs">Workflow vs Agent<span class="leaf">按部就班 vs 自主达成</span></td>
+        <td class="rhs">
+          <p>一句话:<b>Workflow 是让 AI 按部就班执行指令,Agent 是赋予 AI 自由度去自主达成目标。</b></p>
+          <ul>
+            <li><b>Workflow(工作流)</b>:对任务<b>预先定义、结构化编排</b>的精确静态流程图。例:费用报销审批(金额分支判断),每步每条件都预先设定。</li>
+            <li><b>Agent(智能体)</b>:具备自主性、<b>以目标为导向</b>的系统,能理解环境、推理、制定计划、动态行动。LLM 扮演「大脑」。例:旅行助手——无写死的 <code>if 天气=晴天 then 推荐颐和园</code> 规则,而是基于实时信息动态推理决策(雨天则推荐室内场所)。</li>
+          </ul>
+          <p><b>核心价值</b>:Agent 基于实时信息动态推理和决策的能力。</p>
+        </td>
+      </tr>
+
+    </tbody>
+  </table>
+</section>
+
+<footer>
+  数据来源:datawhale hello-agents 教程第一章《初识智能体》。 · 左栏用于回忆自测,右栏用于核对。
+</footer>
+</div>
+
+<script>
+  document.getElementById('btnHide').addEventListener('click', function(){
+    document.body.classList.toggle('hide-rhs');
+    this.classList.toggle('active');
+  });
+</script>
+</body>
+</html>

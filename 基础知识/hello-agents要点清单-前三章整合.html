@@ -1,0 +1,765 @@
+<!--
+  功能: datawhale hello-agents 教程前三章要点清单整合单页——双栏对照(左:要点术语 / 右:答案与解释),用于自测回忆。
+  创建日期: 2026-08-13
+  输入: datawhale hello-agents 教程前三章原文(第一/二/三章,均已读取)
+  输出: 单页 HTML,左侧固定总目录 + 右侧三章双栏表格;可浏览器打开,亦可打印为 PDF;可加书签随时访问
+  说明: 全部样式内联、无外部依赖;适配亮/暗主题;响应式:窄屏目录折叠;自测模式可隐藏右栏
+-->
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>hello-agents 要点清单 · 前三章整合</title>
+<style>
+  :root{
+    --bg:#fbfaf7; --fg:#1f2328; --muted:#6b7280; --rule:#e5e3dd;
+    --lhs:#fff; --lhs-bg:#f4f2ec; --accent:#2f5fa6; --code-bg:#f3f1ea;
+    --row-alt:#faf9f5; --sidebar-bg:#f1efe8;
+    --c1:#2f5fa6; --c2:#8a5cb8; --c3:#1f8a5b;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#15171c; --fg:#e6e6e6; --muted:#9aa3af; --rule:#2a2e36;
+      --lhs:#0f1116; --lhs-bg:#1b1f26; --accent:#8ab4f8; --code-bg:#1e222a;
+      --row-alt:#1a1d23; --sidebar-bg:#131619;
+      --c1:#8ab4f8; --c2:#c79bff; --c3:#7fd1a6;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#15171c; --fg:#e6e6e6; --muted:#9aa3af; --rule:#2a2e36;
+    --lhs:#0f1116; --lhs-bg:#1b1f26; --accent:#8ab4f8; --code-bg:#1e222a;
+    --row-alt:#1a1d23; --sidebar-bg:#131619;
+    --c1:#8ab4f8; --c2:#c79bff; --c3:#7fd1a6;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0; background:var(--bg); color:var(--fg);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",Roboto,Helvetica,Arial,sans-serif;
+    line-height:1.75; font-size:16px; -webkit-font-smoothing:antialiased;
+  }
+
+  /* 整体布局 */
+  .layout{display:flex; min-height:100vh}
+  .content{flex:1; min-width:0; padding:0 22px 120px 22px; max-width:1180px; margin:0 auto}
+
+  /* 侧边栏 */
+  aside.side{
+    position:sticky; top:0; height:100vh; width:270px; flex-shrink:0;
+    overflow-y:auto; background:var(--sidebar-bg); border-right:1px solid var(--rule);
+    padding:18px 14px; z-index:30;
+  }
+  aside.side .brand{font-weight:700; font-size:1rem; margin-bottom:2px}
+  aside.side .brand-sub{color:var(--muted); font-size:.74rem; margin-bottom:16px}
+  aside.side .toolrow{display:flex; gap:6px; flex-wrap:wrap; margin-bottom:16px}
+  aside.side button{
+    font:inherit; font-size:.76rem; cursor:pointer; border:1px solid var(--rule);
+    background:var(--lhs-bg); color:var(--fg); padding:4px 9px; border-radius:7px; transition:.15s;
+  }
+  aside.side button:hover{border-color:var(--accent); color:var(--accent)}
+  aside.side button.active{background:var(--accent); color:#fff; border-color:var(--accent)}
+  aside.side nav .chap{font-weight:700; font-size:.86rem; margin:14px 0 4px; display:block; text-decoration:none; color:var(--fg)}
+  aside.side nav .chap:hover{color:var(--accent)}
+  aside.side nav .sec{display:block; text-decoration:none; color:var(--muted); font-size:.8rem;
+    padding:3px 0 3px 14px; border-left:2px solid transparent; margin-left:2px}
+  aside.side nav .sec:hover{color:var(--fg); border-left-color:var(--accent)}
+  aside.side .dot{display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:6px; vertical-align:middle}
+
+  /* 移动端:侧边栏折叠成顶部抽屉 */
+  .side-toggle{display:none}
+  @media (max-width:880px){
+    aside.side{
+      position:fixed; left:0; top:0; transform:translateX(-100%); transition:transform .25s;
+      width:260px; box-shadow:2px 0 18px rgba(0,0,0,.18); z-index:50;
+    }
+    aside.side.open{transform:translateX(0)}
+    .side-toggle{
+      display:flex; align-items:center; gap:8px; position:fixed; left:10px; bottom:18px; z-index:60;
+      background:var(--accent); color:#fff; border:none; border-radius:999px; padding:10px 16px;
+      font:inherit; font-size:.85rem; cursor:pointer; box-shadow:0 4px 14px rgba(0,0,0,.25)
+    }
+    .content{padding:0 16px 120px}
+  }
+
+  /* 首屏大标题 */
+  .hero{padding:34px 0 10px}
+  .hero h1{margin:0 0 6px; font-size:1.7rem}
+  .hero p{margin:0; color:var(--muted); font-size:.92rem}
+  .hero .meta{margin-top:10px; font-size:.8rem; color:var(--muted)}
+  .hero .meta b{color:var(--fg)}
+
+  /* 章节 */
+  section.chap{margin-top:46px; scroll-margin-top:24px}
+  section.chap > h2{font-size:1.34rem; margin:0 0 4px; padding-bottom:8px; border-bottom:2px solid var(--chap-color)}
+  section.chap > .sec-sub{color:var(--muted); font-size:.85rem; margin:0 0 18px}
+  .c1{--chap-color:var(--c1)}
+  .c2{--chap-color:var(--c2)}
+  .c3{--chap-color:var(--c3)}
+
+  /* 小节标题 */
+  .sectitle{
+    font-size:1.04rem; font-weight:700; margin:26px 0 10px;
+    padding-left:10px; border-left:4px solid var(--chap-color); scroll-margin-top:20px;
+  }
+
+  /* 双栏表 */
+  table.grid{width:100%; border-collapse:collapse; border:1px solid var(--rule); border-radius:10px; overflow:hidden; margin-bottom:6px}
+  table.grid th{text-align:left; font-size:.78rem; letter-spacing:.06em; color:var(--muted); font-weight:600; padding:9px 14px; background:var(--lhs-bg); border-bottom:1px solid var(--rule)}
+  table.grid td{vertical-align:top; padding:13px 15px; border-top:1px solid var(--rule)}
+  table.grid tr:first-child td{border-top:none}
+  td.lhs{width:34%; min-width:230px; background:var(--lhs-bg); font-weight:600; font-size:.98rem}
+  td.lhs .leaf{display:block; font-weight:400; color:var(--muted); font-size:.86rem; margin-top:3px}
+  td.rhs{font-size:.94rem}
+  td.rhs p{margin:.3em 0}
+  td.rhs p:first-child{margin-top:0}
+  td.rhs p:last-child{margin-bottom:0}
+  td.rhs .term{font-weight:700; color:var(--accent)}
+  td.rhs code{font-family:"SF Mono",Consolas,Menlo,monospace; font-size:.86em; background:var(--code-bg); padding:1px 6px; border-radius:4px}
+  td.rhs ul{margin:.3em 0; padding-left:1.3em}
+  td.rhs li{margin:.18em 0}
+  td.rhs .formula{font-family:"SF Mono",Consolas,Menlo,monospace; font-size:.9em; background:var(--code-bg); padding:7px 11px; border-radius:6px; display:block; margin:6px 0; overflow-x:auto; white-space:pre-wrap}
+  table.grid tbody tr:nth-child(even) td.rhs{background:var(--row-alt)}
+
+  /* 自测模式 */
+  body.hide-rhs td.rhs{display:none}
+  body.hide-rhs td.lhs{width:100%; background:var(--lhs-bg)}
+  body.hide-rhs #btnHide{background:var(--accent); color:#fff; border-color:var(--accent)}
+  /* 自测横幅 */
+  .test-banner{display:none; position:fixed; right:18px; bottom:18px; z-index:40;
+    background:var(--accent); color:#fff; padding:8px 14px; border-radius:8px; font-size:.82rem;
+    box-shadow:0 4px 14px rgba(0,0,0,.25)}
+  body.hide-rhs .test-banner{display:block}
+
+  footer{margin-top:60px; padding-top:18px; border-top:1px solid var(--rule); color:var(--muted); font-size:.8rem}
+</style>
+</head>
+<body>
+<div class="layout">
+
+  <!-- ============ 侧边栏目录 ============ -->
+  <aside class="side" id="sidebar">
+    <div class="brand">📘 hello-agents 要点清单</div>
+    <div class="brand-sub">前三章整合 · 自测回忆用</div>
+    <div class="toolrow">
+      <button id="btnHide">👁 隐藏右栏</button>
+      <button id="btnTheme">🌗 切换主题</button>
+      <button onclick="window.print()">🖨 打印</button>
+    </div>
+    <nav>
+      <a class="chap" href="#hero"><span class="dot" style="background:var(--accent)"></span>总览</a>
+
+      <a class="chap" href="#ch1"><span class="dot" style="background:var(--c1)"></span>第一章 初识智能体</a>
+      <a class="sec" href="#ch1-1">1.1 什么是智能体</a>
+      <a class="sec" href="#ch1-2">1.2 构成与运行原理</a>
+      <a class="sec" href="#ch1-3">1.3 动手实现智能体</a>
+      <a class="sec" href="#ch1-4">1.4 协作模式</a>
+
+      <a class="chap" href="#ch2"><span class="dot" style="background:var(--c2)"></span>第二章 智能体发展史</a>
+      <a class="sec" href="#ch2-1">2.1 符号与逻辑早期智能体</a>
+      <a class="sec" href="#ch2-2">2.2 规则聊天机器人</a>
+      <a class="sec" href="#ch2-3">2.3 心智社会</a>
+      <a class="sec" href="#ch2-4">2.4 学习范式与现代智能体</a>
+
+      <a class="chap" href="#ch3"><span class="dot" style="background:var(--c3)"></span>第三章 大语言模型基础</a>
+      <a class="sec" href="#ch3-1">3.1 语言模型与 Transformer</a>
+      <a class="sec" href="#ch3-2">3.2 与大语言模型交互</a>
+      <a class="sec" href="#ch3-3">3.3 缩放法则与局限性</a>
+    </nav>
+  </aside>
+
+  <!-- 移动端抽屉开关 -->
+  <button class="side-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">☰ 目录</button>
+
+  <!-- ============ 主内容 ============ -->
+  <div class="content">
+
+    <div class="hero" id="hero">
+      <h1>hello-agents 要点清单</h1>
+      <p>左栏 = 要点术语(用来回忆) · 右栏 = 答案与解释(用来核对) · 点击「隐藏右栏」进入纯自测模式</p>
+      <p class="meta">整合 <b>第一/二/三章</b> · 数据来源 <b>datawhale hello-agents</b> 教程 · 更新于 2026-08-13</p>
+    </div>
+
+    <!-- ============================================================= -->
+    <!-- =====================  第一章  ============================== -->
+    <!-- ============================================================= -->
+    <section class="chap c1" id="ch1">
+      <h2>第一章 初识智能体</h2>
+      <p class="sec-sub">定义与四要素 · 传统智能体演进 · LLM 新范式 · 运行原理 · 协作模式</p>
+
+      <div class="sectitle" id="ch1-1">1.1 什么是智能体</div>
+      <table class="grid"><thead><tr><th>要点术语</th><th>答案与解释</th></tr></thead><tbody>
+
+        <tr><td class="lhs">智能体的定义<span class="leaf">四要素</span></td>
+        <td class="rhs"><p>能通过<b>传感器</b>感知<b>环境</b>,并<b>自主</b>地通过<b>执行器</b>采取<b>行动</b>以达成特定目标的实体。</p>
+        <p><b>四个基本要素</b>:</p><ul>
+          <li><b>环境 (Environment)</b>:智能体所处的外部世界(道路/金融市场等);</li>
+          <li><b>传感器 (Sensors)</b>:感知能力的延伸(摄像头/雷达/API 数据流);</li>
+          <li><b>执行器 (Actuators)</b>:改变环境的手段(机械臂等物理设备 / 调用服务等虚拟工具);</li>
+          <li><b>自主性 (Autonomy)</b>:真正赋予「智能」的核心——能基于感知和内部状态独立决策,而非被动执行预设指令。</li>
+        </ul></td></tr>
+
+        <tr><td class="lhs">传统智能体演进阶梯<span class="leaf">反应式 → 模型 → 目标 → 效用 → 学习</span></td>
+        <td class="rhs"><p>一条「从简单到复杂、从被动反应到主动学习」的演进路线:</p><ul>
+          <li><b>① 反射智能体 (Simple Reflex)</b>:核心是「条件-动作」规则(自动恒温器)。只依赖当前感知,无记忆无预测,像数字化本能。</li>
+          <li><b>② 基于模型的反射智能体 (Model-Based)</b>:有内部<b>世界模型</b>,追踪无法直接感知的方面,有初级「记忆」(隧道中的自动驾驶)。</li>
+          <li><b>③ 基于目标的智能体 (Goal-Based)</b>:主动有预见地规划导向目标的行动(GPS 用 A* 算法规划路径)。</li>
+          <li><b>④ 基于效用的智能体 (Utility-Based)</b>:为每个状态赋效用值,在多冲突目标间权衡,最大化期望效用(最短+最省油+避开拥堵)。</li>
+          <li><b>⑤ 学习型智能体 (Learning Agent)</b>:含性能元件 + 学习元件,通过与环境互动自主学习修正策略;<b>强化学习 (RL)</b> 是其代表路径(AlphaGo Zero)。</li>
+        </ul></td></tr>
+
+        <tr><td class="lhs">LLM 驱动的新范式<span class="leaf">规划与推理 · 工具使用 · 动态修正</span></td>
+        <td class="rhs"><p>以 <b>GPT</b> 为代表的 LLM 改变了智能体的核心决策机制。传统智能体能力源于<b>显式编程</b>(确定、有边界);LLM 智能体靠<b>海量数据预训练</b>获得<b>隐式世界模型</b>与<b>涌现能力</b>(灵活、通用)。</p>
+        <p>以「智能旅行助手」为例,体现三点:</p><ul>
+          <li><b>规划与推理</b>:把高层级目标分解为子任务(<code>确认偏好→查询信息→制定行程→预订</code>);</li>
+          <li><b>工具使用</b>:识别信息缺口,主动调用外部工具补全(调天气 API → 据雨天推荐室内活动);</li>
+          <li><b>动态修正</b>:把用户反馈(超预算)视为新约束,调整后续行动。</li>
+        </ul><p>核心转变:从「编写代码」转向「引导一个通用的『大脑』去规划、行动、学习」。</p></td></tr>
+
+        <tr><td class="lhs">分类维度①:内部决策架构<span class="leaf">反应式 / 模型式 / 目标 / 效用 + 学习元能力</span></td>
+        <td class="rhs"><p>依据内部决策架构的复杂程度(《人工智能:一种现代方法》):从<b>反应式</b> → <b>模型式</b> → <b>基于目标</b> → <b>基于效用</b>。<b>学习能力</b>是可赋予上述所有类型的「元能力」。</p></td></tr>
+
+        <tr><td class="lhs">分类维度②:时间与反应性<span class="leaf">反应式 / 规划式 / 混合式</span></td>
+        <td class="rhs"><p>关注智能体是<b>立即行动</b>还是<b>深思熟虑后规划</b>。核心权衡:追求速度的<b>反应性</b> vs 追求最优解的<b>规划性</b>。</p><ul>
+          <li><b>反应式 (Reactive)</b>:近乎即时响应、决策延迟低,感知→行动直接映射(安全气囊、高频交易)。优势是<b>速度快开销低</b>,代价是「短视」、易陷局部最优。</li>
+          <li><b>规划式 (Deliberative)</b>:行动前用世界模型探索未来可能性,评估行动序列后果找最佳路径(棋手预想十几步)。优势是战略远见,代价是<b>高昂的时间和计算成本</b>。</li>
+          <li><b>混合式 (Hybrid)</b>:结合两者。经典是分层设计(底层快速反应 + 高层审慎规划)。现代 LLM 智能体在「思考-行动-观察」循环中实现更灵活的混合。</li>
+        </ul></td></tr>
+
+        <tr><td class="lhs">分类维度③:知识表示<span class="leaf">符号主义 / 亚符号主义 / 神经符号主义</span></td>
+        <td class="rhs"><p>探究智能体用以决策的知识以何种形式存在——AI 领域半世纪辩论的核心:</p><ul>
+          <li><b>符号主义 (Symbolic AI)</b>:智能源于对符号的逻辑操作(规则库/知识图谱)。优势:<b>透明可解释</b>(金融医疗高风险领域重要);致命弱点「<b>知识获取瓶颈</b>」——依赖完备规则,现实世界新情况即失灵。</li>
+          <li><b>亚符号主义 (Sub-symbolic / 连接主义)</b>:知识内隐分布在神经元网络中,从数据学统计模式(神经网络/深度学习)。优势:<b>模式识别强、抗噪声</b>;弱点是<b>黑箱</b>(无法解释为什么),纯逻辑推理差,会幻觉。</li>
+          <li><b>神经符号主义 (Neuro-Symbolic)</b>:融合两者,既像神经网络学习、又像符号系统推理。类比卡尼曼《思考,快与慢》:
+            <ul>
+              <li><b>系统 1</b>:快速、直觉、并行 ≈ 亚符号(模式识别);</li>
+              <li><b>系统 2</b>:缓慢、有条理、基于逻辑 ≈ 符号(推理)。</li>
+            </ul>
+            LLM 智能体是其绝佳范例:内核是神经网络,工作时却生成结构化中间步骤(思想/计划/API 调用这些符号)。</li>
+        </ul></td></tr>
+
+      </tbody></table>
+
+      <div class="sectitle" id="ch1-2">1.2 智能体的构成与运行原理</div>
+      <table class="grid"><thead><tr><th>要点术语</th><th>答案与解释</th></tr></thead><tbody>
+
+        <tr><td class="lhs">PEAS 模型<span class="leaf">任务环境定义</span></td>
+        <td class="rhs"><p>用 <b>PEAS</b> 精确描述一个任务环境:</p><ul>
+          <li><b>P</b>erformance 性能度量(目标达成好坏的标准);</li>
+          <li><b>E</b>nvironment 环境(外部世界);</li>
+          <li><b>A</b>ctuators 执行器(改变环境的手段);</li>
+          <li><b>S</b>ensors 传感器(感知环境的途径)。</li>
+        </ul></td></tr>
+
+        <tr><td class="lhs">任务环境的复杂特性<span class="leaf">部分可观察 / 随机性 / 多智能体 / 序贯动态</span></td>
+        <td class="rhs"><p>LLM 智能体所处数字环境的特性,直接影响设计:</p><ul>
+          <li><b>部分可观察</b>:无法一次获取全部信息(航班 API 只返回部分数据) → 需<b>记忆</b>和<b>探索</b>能力;</li>
+          <li><b>确定性 vs 随机性</b>:行动结果是否可预测。票价搜索是随机性环境(两次调用结果不同) → 需处理不确定性;</li>
+          <li><b>多智能体 (Multi-agent)</b>:环境中有其他行动者(其他用户、调价脚本) → 需快速响应;</li>
+          <li><b>序贯 + 动态</b>:序贯=当前动作影响未来;动态=环境自身会变化 → 「感知-思考-行动-观察」循环须快速灵活适应。</li>
+        </ul></td></tr>
+
+        <tr><td class="lhs">智能体循环<span class="leaf">Agent Loop · 感知-思考-行动-观察</span></td>
+        <td class="rhs"><p>智能体通过一个持续循环与环境交互,这是其自主行为的基础。三阶段:</p><ul>
+          <li><b>① 感知 (Perception)</b>:通过传感器接收环境输入 = <b>观察 (Observation)</b>(用户指令或上一步行动的反馈)。</li>
+          <li><b>② 思考 (Thought)</b>:核心决策阶段(LLM 驱动),细分两环节:
+            <ul>
+              <li><b>规划 (Planning)</b>:基于观察和记忆,更新理解,制定/调整行动计划,可能分解子任务;</li>
+              <li><b>工具选择 (Tool Selection)</b>:从工具库选最适合下一步的工具及参数。</li>
+            </ul>
+          </li>
+          <li><b>③ 行动 (Action)</b>:通过执行器执行(调用代码解释器/搜索 API),改变环境状态。</li>
+        </ul><p>行动引起环境<b>状态变化</b>,产生新的<b>观察</b>反馈,被下一轮感知捕获 → 持续闭环。</p></td></tr>
+
+        <tr><td class="lhs">交互协议<span class="leaf">Thought / Action / Observation</span></td>
+        <td class="rhs"><p>为让 LLM 有效驱动循环,需明确的<b>交互协议</b>。智能体输出是结构化文本,含两部分:</p><ul>
+          <li><b>Thought (思考)</b>:内部决策「快照」,用自然语言阐述如何分析情境、回顾观察、自我反思、规划下一步。</li>
+          <li><b>Action (行动)</b>:基于思考决定的具体操作,通常为函数调用。</li>
+        </ul><span class="formula">Thought: 用户想知道北京天气。我需要调用天气查询工具。
+Action: get_weather("北京")</span>
+        <p><b>解析器 (Parser)</b>捕捉 Action 指令调用对应函数;返回的原始数据(如 JSON)被封装成简洁自然语言 <b>Observation</b>,作为下一轮输入。</p></td></tr>
+
+      </tbody></table>
+
+      <div class="sectitle" id="ch1-3">1.3 动手体验:5 分钟实现第一个智能体</div>
+      <table class="grid"><thead><tr><th>要点术语</th><th>答案与解释</th></tr></thead><tbody>
+
+        <tr><td class="lhs">提示工程<span class="leaf">指令模板 / system_prompt</span></td>
+        <td class="rhs"><p>驱动真实 LLM 的关键是<b>提示工程</b>:设计一个「指令模板」,告诉 LLM 它的角色、拥有的工具、如何格式化思考和行动,作为 <code>system_prompt</code> 传入。</p>
+        <p>模板要点:声明可用工具及签名;规定输出格式(<code>Thought: ... Action: ...</code>);Action 形式为「调用工具 function_name(arg="value")」或「结束任务 Finish[最终答案]」;每次只输出一对 Thought-Action。</p></td></tr>
+
+        <tr><td class="lhs">工具(Tool)</td>
+        <td class="rhs"><p>工具是智能体与外部世界交互的「执行器」。本例两个工具:</p><ul>
+          <li><code>get_weather(city)</code>:调 <code>wttr.in</code> API 返回 JSON,格式化为自然语言;</li>
+          <li><code>get_attraction(city, weather)</code>:调 Tavily Search API 搜索景点推荐。</li>
+        </ul><p>所有工具函数放入字典 <code>available_tools</code> 供主循环调用。</p></td></tr>
+
+        <tr><td class="lhs">接入 LLM<span class="leaf">OpenAI 兼容接口 · 三凭证</span></td>
+        <td class="rhs"><p>许多 LLM 服务商(OpenAI/Azure/Ollama/vLLM)都遵循<b>兼容 OpenAI 的接口规范</b>,带来标准化便利。实现通用客户端 <code>OpenAICompatibleClient</code> 可连任何兼容服务。</p>
+        <p>实例化需三信息:<code>API_KEY</code>、<code>BASE_URL</code>、<code>MODEL_ID</code>。其 <code>generate(prompt, system_prompt)</code> 方法构造 system+user 消息调用 chat completions 接口。</p></td></tr>
+
+        <tr><td class="lhs">执行行动循环<span class="leaf">主循环四步 · 最大循环次数</span></td>
+        <td class="rhs"><p>主循环整合所有组件,驱动 LLM 决策。每轮:</p><ul>
+          <li>① 构建 prompt(拼接历史);</li>
+          <li>② 调 LLM 思考,正则截断多余的 Thought-Action 对;</li>
+          <li>③ 解析 Action:若 <code>Finish[…]</code> 则输出最终答案并 break;否则正则提取工具名和参数,从 <code>available_tools</code> 调用;</li>
+          <li>④ 记录 <code>Observation</code> 追加到历史,进入下一轮。</li>
+        </ul><p><b>设置最大循环次数(如 5)</b>是必要的防护:防止智能体陷入无限循环/反复调用工具。</p>
+        <p>核心是「工具」+「提示工程」的结合——这正是主流框架(LangChain/LlamaIndex)的设计精髓。</p></td></tr>
+
+        <tr><td class="lhs">智能体四项基本能力<span class="leaf">任务分解 / 工具调用 / 上下文理解 / 结果合成</span></td>
+        <td class="rhs"><p>旅行助手案例演示了基于 Thought-Action-Observation 范式的四项能力:<b>任务分解</b>、<b>工具调用</b>、<b>上下文理解</b>、<b>结果合成</b>。通过循环不断迭代,把模糊意图转化为具体可执行步骤并达成目标。</p></td></tr>
+
+      </tbody></table>
+
+      <div class="sectitle" id="ch1-4">1.4 智能体应用的协作模式</div>
+      <table class="grid"><thead><tr><th>要点术语</th><th>答案与解释</th></tr></thead><tbody>
+
+        <tr><td class="lhs">作为开发者工具<span class="leaf">Copilot · Claude Code · Trae · Cursor</span></td>
+        <td class="rhs"><p>智能体作为强大辅助工具<b>增强而非取代</b>开发者,自动化繁琐重复任务。代表产品:</p><ul>
+          <li><b>GitHub Copilot</b>:GitHub+OpenAI,深度集成 VS Code,以代码自动补全闻名,有 Copilot Chat 对话编程;</li>
+          <li><b>Claude Code</b>:Anthropic,终端中用自然语言编码,理解完整代码库,支持 headless 无交互模式(CI/hooks/脚本);</li>
+          <li><b>Trae</b>:新兴工具,智能代码生成与优化,轻量快速响应,适合频繁迭代/原型;</li>
+          <li><b>Cursor</b>:AI <b>原生</b>代码编辑器(非插件),设计之初就以 AI 交互为核心,强调让 AI 理解整个代码库上下文。</li>
+        </ul></td></tr>
+
+        <tr><td class="lhs">作为自主协作者<span class="leaf">目标-委托 · 三种架构范式</span></td>
+        <td class="rhs"><p>把高层级目标<b>委托</b>给智能体,它像项目成员独立规划、推理、执行、反思直到交付。关系从「命令-执行」演变为「<b>目标-委托</b>」。代表框架:BabyAGI、AutoGPT、CrewAI、AutoGen、MetaGPT、LangGraph。三种主流架构范式:</p><ul>
+          <li><b>① 单智能体自主循环</b>(如 AgentGPT):通用智能体通过「思考-规划-执行-反思」闭环自我提示迭代;</li>
+          <li><b>② 多智能体协作</b>(最主流):模拟人类团队。细分:
+            <ul>
+              <li><b>角色扮演式对话</b>(CAMEL):为两个智能体设角色和沟通协议;</li>
+              <li><b>组织化工作流</b>(MetaGPT/CrewAI):模拟分工明确的虚拟团队(软件公司/咨询小组),各有职责和 SOP;AutoGen/AgentScope 提供更灵活的交互网络。</li>
+            </ul>
+          </li>
+          <li><b>③ 高级控制流架构</b>(LangGraph):把执行过程建模为<b>状态图 (State Graph)</b>,灵活可靠地实现循环、分支、回溯、人工介入。</li>
+        </ul></td></tr>
+
+        <tr><td class="lhs">Workflow vs Agent<span class="leaf">按部就班 vs 自主达成</span></td>
+        <td class="rhs"><p>一句话:<b>Workflow 是让 AI 按部就班执行指令,Agent 是赋予 AI 自由度去自主达成目标。</b></p><ul>
+          <li><b>Workflow(工作流)</b>:对任务<b>预先定义、结构化编排</b>的精确静态流程图。例:费用报销审批(金额分支判断),每步每条件都预先设定。</li>
+          <li><b>Agent(智能体)</b>:具备自主性、<b>以目标为导向</b>的系统,能理解环境、推理、制定计划、动态行动。LLM 扮演「大脑」。例:旅行助手——无写死的 <code>if 天气=晴天 then 推荐颐和园</code> 规则,而是基于实时信息动态推理决策(雨天则推荐室内场所)。</li>
+        </ul><p><b>核心价值</b>:Agent 基于实时信息动态推理和决策的能力。</p></td></tr>
+
+      </tbody></table>
+    </section>
+
+    <!-- ============================================================= -->
+    <!-- =====================  第二章  ============================== -->
+    <!-- ============================================================= -->
+    <section class="chap c2" id="ch2">
+      <h2>第二章 智能体发展史</h2>
+      <p class="sec-sub">符号主义 · 专家系统 · ELIZA · 心智社会 · 联结/强化/预训练 · LLM 智能体</p>
+
+      <div class="sectitle" id="ch2-1">2.1 基于符号与逻辑的早期智能体</div>
+      <table class="grid"><thead><tr><th>要点术语</th><th>答案与解释</th></tr></thead><tbody>
+
+        <tr><td class="lhs">符号主义 (Symbolicism)<span class="leaf">逻辑AI / 传统AI</span></td>
+        <td class="rhs"><p>AI 的第一个重要范式。核心信念:<b>智能行为的核心是基于一套明确规则对符号进行操作</b>。智能体是「物理符号系统」——用内部符号表示外部世界,通过逻辑推理规划行动。「智慧」<b>完全来源于设计者预先编码的知识库和推理规则</b>,而非自主学习。</p></td></tr>
+
+        <tr><td class="lhs">物理符号系统假说 (PSSH)<span class="leaf">Newell & Simon 1976 · 两大论断</span></td>
+        <td class="rhs"><p>符号主义时代的理论基石。大胆宣称:<b>智能的本质,就是符号的计算与处理</b>。两个核心论断:</p><ul>
+          <li><b>充分性论断</b>:任何物理符号系统,都<b>具备</b>产生通用智能行为的充分手段;</li>
+          <li><b>必要性论断</b>:任何能展现通用智能行为的系统,其本质<b>必然是</b>物理符号系统。</li>
+        </ul><p>物理符号系统 = 一组可区分的<b>符号</b> + 一系列对符号操作的<b>过程</b>(创建/修改/复制/销毁符号结构)。深远影响:把对「心智」的哲学研究转化为可工程化实现的具体问题。</p></td></tr>
+
+        <tr><td class="lhs">专家系统 (Expert System)<span class="leaf">知识库 + 推理机</span></td>
+        <td class="rhs"><p>符号主义最重要、最成功的应用。核心目标:模拟人类专家在特定领域解决问题的能力。体现<b>知识与推理相分离</b>的设计思想(符号主义重要特征)。两大核心组件:</p><ul>
+          <li><b>知识库 (Knowledge Base)</b>:存放专家知识。常用知识表示方法是<b>产生式规则 (Production Rules)</b>——一系列「IF-THEN」条件语句。</li>
+          <li><b>推理机 (Inference Engine)</b>:核心计算引擎,根据事实在知识库找规则推导结论。两种工作方式:
+            <ul>
+              <li><b>正向链 (Forward Chaining)</b>:从已知事实出发,匹配 IF 触发 THEN,直至推出目标。<b>数据驱动</b>;</li>
+              <li><b>反向链 (Backward Chaining)</b>:从假设目标出发,反推需要的子目标,递归证明。<b>目标驱动</b>。</li>
+            </ul>
+          </li>
+        </ul></td></tr>
+
+        <tr><td class="lhs">MYCIN<span class="leaf">反向链 · 置信因子 CF</span></td>
+        <td class="rhs"><p>史上最著名的专家系统之一(斯坦福,1970s),辅助诊断细菌性血液感染、推荐抗生素。</p><ul>
+          <li><b>工作原理</b>:问答式交互收集症状;知识库约 600 条 IF-THEN 规则;推理机主要用<b>反向链</b>(从「确定致病菌」目标反推证据)。</li>
+          <li><b>不确定性处理</b>:重要创新 <b>置信因子 (Certainty Factor, CF)</b>——用 −1 到 1 的数值表示结论可信度,比布尔逻辑更贴近现实。</li>
+          <li><b>成就</b>:血液感染诊断表现超非专业医生、达专家水平,雄辩证明 PSSH 有效性,为 AI 商业化铺路。</li>
+        </ul></td></tr>
+
+        <tr><td class="lhs">SHRDLU<span class="leaf">积木世界 · 综合性智能典范</span></td>
+        <td class="rhs"><p>Winograd 1968-1970 开发。在「积木世界」(含积木和虚拟机械臂的三维空间)中用自然语言流畅交互的综合性智能体。首次将多个 AI 模块(语言解析/规划/记忆)集成于统一系统并协同。三大能力:</p><ul>
+          <li><b>自然语言理解</b>:解析复杂歧义句,支持<b>指代消解</b>(the one you are holding)和<b>上下文记忆</b>;</li>
+          <li><b>规划与行动</b>:自主规划动作序列(先移开绿积木再放蓝积木);</li>
+          <li><b>记忆与问答</b>:能问世界状态、行为历史、甚至行为动机(Why? → BECAUSE YOU ASKED ME TO)。</li>
+        </ul><p><b>历史地位</b>:综合性智能典范;普及微观世界研究方法;其能力局限于积木世界也引发对「符号处理 vs 真正理解」的长期思辨。</p></td></tr>
+
+        <tr><td class="lhs">符号主义的根本挑战<span class="leaf">知识获取瓶颈 · 常识 · 框架 · 脆弱性</span></td>
+        <td class="rhs"><p>从微观世界走向开放现实世界时遇到的两大类固有难题:</p>
+        <p><b>（1）常识知识与知识获取瓶颈</b></p><ul>
+          <li><b>知识获取瓶颈</b>:知识需专家+知识工程师繁琐访谈提炼编码,成本高、难规模化;专家的内隐直觉知识很难表达为 IF-THEN。</li>
+          <li><b>常识问题</b>:人类依赖庞大常识背景(水是湿的),符号系统除非明确编码否则一无所知。<b>Cyc 项目</b>历经数十年成效有限。</li>
+        </ul>
+        <p><b>（2）框架问题与系统脆弱性</b></p><ul>
+          <li><b>框架问题 (Frame Problem)</b>:动态世界中,执行动作后如何高效判断<b>哪些事物未变</b>是逻辑难题;显式声明所有不变状态计算上不可行。</li>
+          <li><b>系统脆弱性 (Brittleness)</b>:完全依赖预设规则,遇到规则外微小变化即<b>完全失灵</b>,无法像人类灵活变通。SHRDLU 之成功正因运行在规则完备的封闭世界。</li>
+        </ul></td></tr>
+
+      </tbody></table>
+
+      <div class="sectitle" id="ch2-2">2.2 构建基于规则的聊天机器人</div>
+      <table class="grid"><thead><tr><th>要点术语</th><th>答案与解释</th></tr></thead><tbody>
+
+        <tr><td class="lhs">ELIZA<span class="leaf">Weizenbaum 1966 · DOCTOR 脚本</span></td>
+        <td class="rhs"><p>MIT 的 Weizenbaum 1966 发布,早期 NLP 著名尝试。是一个可执行不同「脚本」的框架,最成功的脚本是 <b>DOCTOR</b>,模仿罗杰斯学派<b>非指导性心理治疗师</b>。</p>
+        <p><b>设计思想</b>:从不正面回答或提供信息,而是识别用户输入中的<b>关键词</b>,应用预设转换规则,把陈述转成开放式提问。魏泽鲍姆本意是证明:用简单句式转换,机器<b>在完全不理解内容的情况下</b>能营造「智能/共情」的假象。却意外引发「<b>ELIZA 效应</b>」——许多人深信它能理解自己。</p></td></tr>
+
+        <tr><td class="lhs">模式匹配与文本替换<span class="leaf">四步算法</span></td>
+        <td class="rhs"><p>ELIZA 算法基于<b>模式匹配 + 文本替换</b>,四步:</p><ul>
+          <li><b>① 关键词识别与排序</b>:为每个关键词设优先级,输入含多个关键词时选最高优先级规则;</li>
+          <li><b>② 分解规则</b>:用带通配符 <code>*</code> 的规则捕获句子其余部分(如 <code>* my *</code>);</li>
+          <li><b>③ 重组规则</b>:从关联的一组重组规则中(通常随机)选一条生成回应,可用上一步捕获内容;</li>
+          <li><b>④ 代词转换</b>:重组前做简单代词转换(<code>I→you</code>, <code>my→your</code>)维持连贯。</li>
+        </ul><p>本质:把复杂 NLP 问题简化为可操作的、基于规则的模式匹配游戏。</p></td></tr>
+
+        <tr><td class="lhs">规则驱动系统的局限<span class="leaf">无语义理解 · 无状态 · 规则爆炸</span></td>
+        <td class="rhs"><p>ELIZA 实践直接印证了 2.1.4 的符号主义挑战,三大局限:</p><ul>
+          <li><b>缺乏语义理解</b>:不理解词义。<code>I am not happy</code> 仍机械匹配 <code>I am (.*)</code> 生成语义不通回应(不懂否定词 not);</li>
+          <li><b>无上下文记忆</b>:系统是<b>无状态 (Stateless)</b>,每次回应只基于当前单句,无法连贯多轮对话;</li>
+          <li><b>规则扩展性问题</b>:增加规则导致<b>规则库规模爆炸</b>,规则间冲突与优先级管理极复杂,最终难以维护。</li>
+        </ul><p>核心矛盾:看似智能的表现完全依赖预先编码的规则;面对真实语言无限可能性,穷举式方法<b>注定不可扩展</b>——没有真正理解,只在执行符号操作,这正是脆弱性根源。</p></td></tr>
+
+      </tbody></table>
+
+      <div class="sectitle" id="ch2-3">2.3 马文·明斯基的心智社会</div>
+      <table class="grid"><thead><tr><th>要点术语</th><th>答案与解释</th></tr></thead><tbody>
+
+        <tr><td class="lhs">对单一整体智能的反思<span class="leaf">Top-down 中央处理器的失败</span></td>
+        <td class="rhs"><p>符号主义局限日益明显:专家系统无儿童常识、SHRDLU 困于积木世界、ELIZA 对内容一无所知。它们都遵循<b>自上而下 (Top-down)</b> 设计:一个全知全能的<b>中央处理器</b>按统一逻辑规则决策。</p>
+        <p>明斯基提出根本问题:「理解」是单一能力还是数十种心智过程的协同?「常识」是百万条规则的庞大知识库,还是分布式经验网络?是否应承认智能是「不完美」的、由功能各异甚至冲突的简单部分组成的大杂烩?强行把多样化心智塞进僵化逻辑框架,正是早期 AI 停滞的根源。</p>
+        <p><b>名言</b>:「让我们智能的神奇戏法是什么?戏法就是没有戏法。智能的力量源于我们巨大的多样性,而非任何单一完美的原则。」</p></td></tr>
+
+        <tr><td class="lhs">心智社会 (Society of Mind)<span class="leaf">Agent / Agency / 涌现</span></td>
+        <td class="rhs"><p>明斯基不再把心智当金字塔层级,而是看作<b>扁平化、充满互动协作的「社会」</b>。三个关键概念:</p><ul>
+          <li><b>智能体 (Agent)</b>:极简单、专门化的心智过程,自身「无心」(如识别线条的 <code>LINE-FINDER</code>、抓握的 <code>GRASP</code>);</li>
+          <li><b>机构 (Agency)</b>:一组协同工作的智能体,完成更复杂任务(如搭积木的 <code>BUILD</code> 由 SEE/FIND/GET/PUT 组成),通过<b>去中心化的激活与抑制信号</b>相互影响;</li>
+          <li><b>涌现 (Emergence)</b>:复杂有目的的智能行为,并非高级智能体预先规划,而是从大量简单底层智能体的<b>局部交互中自发产生</b>。</li>
+        </ul><p><b>积木塔例</b>:目标激活 <code>BUILD-TOWER</code> → <code>BUILDER</code>(循环)→ <code>ADD-BLOCK</code> → <code>FIND/GET/PUT</code> → 更底层 <code>SEE-SHAPE/REACH/GRASP</code>。没有任何智能体拥有全局规划,但通过简单激活抑制规则,搭塔行为自然涌现。</p></td></tr>
+
+        <tr><td class="lhs">对多智能体系统的启发<span class="leaf">去中心化 / 涌现式计算 / 社会性</span></td>
+        <td class="rhs"><p>心智社会为<b>分布式 AI (DAI)</b> 和<b>多智能体系统 (MAS)</b> 提供了重要概念基础。核心追问:心智内部智能靠大量简单智能体协作涌现,那么多个物理上分离的计算实体间,是否也能协作涌现出更强的「<b>群体智能</b>」?三方面直接启发 MAS:</p><ul>
+          <li><b>去中心化控制</b>:不存在中央控制器 → MAS 继承,研究无中心节点的协调机制和任务分配;</li>
+          <li><b>涌现式计算</b>:复杂解可从简单局部交互自发产生 → 启发蚁群算法、粒子群优化等;</li>
+          <li><b>智能体的社会性</b>:强调交互(激活/抑制)→ MAS 扩展为研究通信语言(ACL)、交互协议(契约网)、协商、信任、组织结构,正式开启 MAS 研究序幕。</li>
+        </ul></td></tr>
+
+      </tbody></table>
+
+      <div class="sectitle" id="ch2-4">2.4 学习范式的演进与现代智能体</div>
+      <table class="grid"><thead><tr><th>要点术语</th><th>答案与解释</th></tr></thead><tbody>
+
+        <tr><td class="lhs">联结主义 (Connectionism)<span class="leaf">三大核心思想</span></td>
+        <td class="rhs"><p>对符号主义局限的直接回应,20世纪80年代重新兴起。<b>自下而上</b>的方法,灵感来自生物大脑神经网络。核心思想:</p><ul>
+          <li><b>知识的分布式表示</b>:知识不以符号/规则存于知识库,而以<b>连接权重</b>形式分布式存储在大量简单处理单元(人工神经元)的连接间;</li>
+          <li><b>简单的处理单元</b>:每个神经元只做简单计算(加权输入 → 激活函数 → 输出);</li>
+          <li><b>通过学习调整权重</b>:智能来自「学习」——接触大量样本,按算法(如<b>反向传播</b>)自动迭代调整权重,使输出接近目标。</li>
+        </ul><p>根本转变:符号主义把人类知识显式编码给机器;联结主义则创造能像人类一样<b>学习</b>知识的机器。深度学习成功为智能体赋予强大感知和模式识别能力。</p></td></tr>
+
+        <tr><td class="lhs">强化学习 (RL)<span class="leaf">五要素 · 感知-行动-学习闭环 · 累积奖励</span></td>
+        <td class="rhs"><p>专注解决<b>序贯决策</b>问题。不直接从标注静态数据学,而是通过与环境的直接交互在「<b>试错</b>」中学习如何<b>最大化长期收益</b>(AlphaGo 自我对弈是经典)。</p>
+        <p><b>五要素</b>:<b>智能体</b>(学习者/决策者)、<b>环境</b>(交互对象)、<b>状态 S</b>(环境某时刻描述,决策依据)、<b>行动 A</b>(可采取的操作)、<b>奖励 R</b>(评价行动好坏的标量信号)。</p>
+        <p><b>闭环</b>:① 观察状态 S_t → ② 据<b>策略 π</b>(状态到行动的映射)选行动 A_t 执行 → ③ 环境转到新状态 S_{t+1} → ④ 反馈即时奖励 R_{t+1} → ⑤ 用反馈更新优化策略。</p>
+        <p><b>学习目标</b>:非最大化即时奖励,而是最大化从当前到未来的<b>累积奖励(回报 Return)</b>——需有「远见」,可能牺牲眼前奖励换未来更大奖励(围棋弃子)。</p></td></tr>
+
+        <tr><td class="lhs">预训练 (Pre-training)<span class="leaf">预训练-微调范式 · 自监督学习</span></td>
+        <td class="rhs"><p>解决 RL 智能体「从零开始、缺先验知识」的问题。方案在 NLP 领域浮现,核心是<b>基于大规模数据的预训练</b>。<b>预训练-微调范式</b>两步:</p><ul>
+          <li><b>① 预训练阶段</b>:在互联网级海量文本上,用<b>自监督学习</b>训练超大规模神经网络。目标非特定任务,而是学语言内在规律、语法、事实、上下文逻辑(最常见目标:「<b>预测下一个词</b>」);</li>
+          <li><b>② 微调阶段</b>:针对下游任务,用少量标注数据微调模型适应任务。</li>
+        </ul><p>意义:传统 NLP 为单一任务从零训练(知识面窄、难泛化、需大量标注);预训练范式彻底改变现状。</p></td></tr>
+
+        <tr><td class="lhs">LLM 的涌现能力<span class="leaf">上下文学习 · 思维链</span></td>
+        <td class="rhs"><p>在数万亿 token 上预训练,LLM 权重构建了世界知识的<b>隐式模型</b>,以全新方式解决了符号主义最棘手的「<b>知识获取瓶颈</b>」。规模跨越阈值后展现<b>涌现能力</b>:</p><ul>
+          <li><b>上下文学习 (In-context Learning)</b>:不调权重,仅在输入提供几个示例(Few-shot)甚至零示例(Zero-shot)就能完成新任务;</li>
+          <li><b>思维链 (CoT) 推理</b>:引导模型在回答复杂问题前先输出一步步推理,显著提升逻辑/算术/常识推理准确性。</li>
+        </ul><p>标志:LLM 不再只是语言模型,演变成兼具<b>海量知识库 + 通用推理引擎</b>双重角色的组件。</p></td></tr>
+
+        <tr><td class="lhs">LLM 驱动的智能体<span class="leaf">四大核心组件 · 闭环工作流</span></td>
+        <td class="rhs"><p>以 LLM 为核心的智能体是新范式,能感知、规划、决策、执行。<b>四大核心组件</b>(协同的持续迭代闭环):</p><ul>
+          <li><b>① 感知模块</b>:从环境接收原始输入形成<b>观察</b>;</li>
+          <li><b>② 规划模块 + LLM</b>(认知核心):规划模块用<b>反思 (Reflection)</b>和<b>自我批判 (Self-criticism)</b>分解目标;LLM 与<b>记忆模块</b>交互整合历史,深度推理决策下一步(常为<b>工具调用</b>);</li>
+          <li><b>③ 执行模块</b>:解析指令,从<b>工具箱</b>选合适工具(代码执行器/搜索/API)与环境交互 = 行动;</li>
+          <li><b>④ 记忆模块</b>:行动产生工具结果和新环境状态构成新观察,LLM 据此<b>更新记忆</b>,启动下一轮「感知-思考-行动」循环。</li>
+        </ul></td></tr>
+
+        <tr><td class="lhs">三大思潮 / 发展节点<span class="leaf">符号主义 / 联结主义 / 行为主义</span></td>
+        <td class="rhs"><p>AI 体发展是三大核心思想流派半个多世纪<b>交织、竞争、融合</b>的历程:</p><ul>
+          <li><b>符号主义 (Symbolism)</b>:Simon、Minsky 代表,智能核心在对符号的操作与逻辑推理。催生 SHRDLU、专家系统、国际象棋「深蓝」;</li>
+          <li><b>联结主义 (Connectionism)</b>:灵感源于大脑神经网络。Hinton 等推动反向传播奠定复苏基础,深度学习时代(CNN/Transformer)成主流;</li>
+          <li><b>行为主义 (Behaviorism)</b>:强调与环境互动试错学最优策略,现代化身为<b>强化学习</b>。从 TD-Gammon 到击败人类的 AlphaGo。</li>
+        </ul><p><b>融合</b>:2020s 起三大思潮深度融合——GPT 系列本身是联结主义产物,却成为执行符号推理、工具调用、规划决策的核心「大脑」,形成<b>神经-符号结合</b>的现代智能体架构。</p></td></tr>
+
+      </tbody></table>
+    </section>
+
+    <!-- ============================================================= -->
+    <!-- =====================  第三章  ============================== -->
+    <!-- ============================================================= -->
+    <section class="chap c3" id="ch3">
+      <h2>第三章 大语言模型基础</h2>
+      <p class="sec-sub">N-gram→RNN→LSTM→Transformer→Decoder-Only · 提示工程·分词 · 缩放法则·幻觉</p>
+
+      <div class="sectitle" id="ch3-1">3.1 语言模型与 Transformer 架构</div>
+      <table class="grid"><thead><tr><th>要点术语</th><th>答案与解释</th></tr></thead><tbody>
+
+        <tr><td class="lhs">语言模型的根本任务</td>
+        <td class="rhs"><p>计算一个<span class="term">词序列(句子)出现的概率</span>——判断什么样的句子通顺、自然。它是智能体理解指令、生成回应的基础。</p></td></tr>
+
+        <tr><td class="lhs">概率的链式法则<span class="leaf">→ 引出为什么需要 N-gram</span></td>
+        <td class="rhs"><p>句子概率 = 每个词的条件概率连乘:</p>
+        <span class="formula">P(S) = P(w₁)·P(w₂|w₁)·P(w₃|w₁,w₂)⋯P(wₘ|w₁,…,wₘ₋₁)</span>
+        <p>直接计算几乎不可能:像 <code>P(wₘ|w₁,…,wₘ₋₁)</code> 这样的长条件概率,词序列可能从未在语料中出现。</p></td></tr>
+
+        <tr><td class="lhs">N-gram<span class="leaf">马尔可夫假设 · Bigram · Trigram · MLE</span></td>
+        <td class="rhs"><p><span class="term">核心思想</span>:基于「<b>马尔可夫假设</b>」——不必回溯全部历史,近似认为一个词只与前面有限的 n−1 个词有关。N 代表上下文窗口大小。</p><ul>
+          <li><b>Bigram (N=2)</b>:一个词只与前 1 个词有关 → <code>P(wᵢ|w₁..wᵢ₋₁) ≈ P(wᵢ|wᵢ₋₁)</code></li>
+          <li><b>Trigram (N=3)</b>:只与前 2 个词有关 → <code>P(wᵢ|…) ≈ P(wᵢ|wᵢ₋₂,wᵢ₋₁)</code></li>
+        </ul><p>概率用「<b>最大似然估计 MLE</b>」靠计数估算:<code>P(wᵢ|wᵢ₋₁) = Count(wᵢ₋₁,wᵢ) / Count(wᵢ₋₁)</code>。</p>
+        <p><b>两大缺陷</b>:① 数据稀疏性(未出现序列概率为 0,需平滑);② 泛化能力差(把词当孤立符号,不懂 agent 与 robot 语义相近)。</p></td></tr>
+
+        <tr><td class="lhs">词嵌入 (Word Embedding)<span class="leaf">神经网络语言模型 · 余弦相似度</span></td>
+        <td class="rhs"><p>2003 年 Bengio 的「前馈神经网络语言模型」里程碑:把每个词映射为高维连续空间中的一个点 = <span class="term">词嵌入</span>。语义相近的词向量位置相近。</p>
+        <p>两步思想:① 构建语义空间(词嵌入);② 学习「上下文 → 下一个词概率分布」的映射函数。</p>
+        <p>用<b>余弦相似度</b>度量:</p>
+        <span class="formula">sim(a,b) = (a·b) / (|a|·|b|) ,取值 [−1, 1]</span>
+        <p>经典类比:<code>vec(King) − vec(Man) + vec(Woman) ≈ vec(Queen)</code>。解决了 N-gram 泛化差问题,但仍<b>保留固定上下文窗口</b>的限制。</p></td></tr>
+
+        <tr><td class="lhs">RNN<span class="leaf">隐藏状态 · 长期依赖 · 梯度消失/爆炸</span></td>
+        <td class="rhs"><p><span class="term">循环神经网络</span>核心思想:为网络增加「记忆」,打破固定窗口。</p>
+        <p>引入<b>隐藏状态 (hidden state)</b>= 网络的短期记忆。每步:读当前输入 + 上一刻记忆 → 生成新记忆向后传,信息在序列中持续传递。</p>
+        <p><b>致命问题:长期依赖问题</b>。序列长度即网络深度,反向传播时梯度多次连乘 →</p><ul>
+          <li><b>梯度消失</b>:梯度趋向 0,学不到早期信息;</li>
+          <li><b>梯度爆炸</b>:梯度变得极大。</li>
+        </ul></td></tr>
+
+        <tr><td class="lhs">LSTM<span class="leaf">细胞状态 · 遗忘门 · 输入门 · 输出门</span></td>
+        <td class="rhs"><p><span class="term">长短时记忆网络</span>专为解决长期依赖而设计。两大核心创新:</p><ul>
+          <li><b>细胞状态 (Cell State)</b>:独立于隐藏状态的信息通路,信息在时间步间更顺畅传递。</li>
+          <li><b>门控机制</b>:由几个小网络构成,有选择地放行信息,控制细胞状态的增删。三个门:</li>
+        </ul><p style="margin-left:1.3em">
+          ① <b>遗忘门</b>:决定从上一时刻细胞状态<b>丢弃</b>哪些信息;<br>
+          ② <b>输入门</b>:决定把当前输入的哪些新信息<b>存入</b>细胞状态;<br>
+          ③ <b>输出门</b>:决定据当前细胞状态<b>输出</b>哪些信息到隐藏状态。
+        </p></td></tr>
+
+        <tr><td class="lhs">Transformer<span class="leaf">为什么取代 RNN · Encoder-Decoder</span></td>
+        <td class="rhs"><p>2017 年 Google 提出。<b>RNN 必须按顺序串行处理</b>(第 t 步要等第 t−1 步),无法大规模并行,限制规模和训练速度。</p>
+        <p>Transformer <b>完全抛弃循环结构</b>,只靠<b>注意力机制</b>捕捉依赖,实现真正的并行计算。为机器翻译设计,宏观遵循<b>编码器-解码器 (Encoder-Decoder)</b>:</p><ul>
+          <li><b>编码器</b>:「理解」整个输入,为每个词元生成富含上下文的向量;</li>
+          <li><b>解码器</b>:「生成」目标,参考已生成前文 + 询问编码器结果。</li>
+        </ul></td></tr>
+
+        <tr><td class="lhs">QKV<span class="leaf">自注意力 · 缩放点积公式</span></td>
+        <td class="rhs"><p><b>自注意力</b>建模「读句子时把注意力分配到相关词上」的现象。为每个词引入三个可学习角色(各由词嵌入乘权重矩阵得到):</p><ul>
+          <li><b>查询 Query (Q)</b>:当前词主动查询别的词;</li>
+          <li><b>键 Key (K)</b>:可被查询词的「标签/索引」;</li>
+          <li><b>值 Value (V)</b>:词本身携带的「内容/信息」。</li>
+        </ul><p>四步:① 算相关性(Q 与所有 K 点积) → ② 稳定化(÷√dₖ) → ③ Softmax 归一化 → ④ 权重 × V 加权求和。</p>
+        <span class="formula">Attention(Q,K,V) = softmax( QKᵀ / √dₖ ) V</span></td></tr>
+
+        <tr><td class="lhs">多头注意力</td>
+        <td class="rhs"><p>单头只学一种关联。多头把 Q/K/V 在维度上<b>切分成 h 份</b>,各做一次单头注意力,拼接后线性变换整合——如同 h 个「专家」从不同角度(指代/时态/从属等)审视句子,大幅增强表达能力。</p></td></tr>
+
+        <tr><td class="lhs">前馈神经网络<span class="leaf">Position-wise FFN</span></td>
+        <td class="rhs"><p><span class="term">逐位置前馈网络</span>作用:从注意力聚合的信息中<b>提取更高阶特征</b>。</p>
+        <p>「逐位置」= <b>独立作用于序列每个词元</b>,所有位置<b>共享同一组权重</b>。结构:两个线性变换 + 一个 ReLU,「先扩大再缩小」(d_ff ≈ 4×d_model)。</p>
+        <span class="formula">FFN(x) = max(0, xW₁+b₁) W₂ + b₂</span></td></tr>
+
+        <tr><td class="lhs">残差连接<span class="leaf">Add · 解决梯度消失</span></td>
+        <td class="rhs"><p><span class="term">残差连接 (Add)</span>:把子模块输入直接加到输出上 → <code>Output = x + Sublayer(x)</code>。</p>
+        <p>反向传播时梯度可绕过子模块直接前传,解决了深度网络的<b>梯度消失</b>问题,即使很深也能有效训练。</p></td></tr>
+
+        <tr><td class="lhs">层归一化<span class="leaf">Norm · 内部协变量偏移</span></td>
+        <td class="rhs"><p><span class="term">层归一化 (Norm)</span>:对单个样本的所有特征归一化(均值 0、方差 1)。</p>
+        <p>解决训练中的<b>内部协变量偏移</b>,使每层输入分布稳定,加速收敛、提高稳定性。与残差一起组成 <code>Add &amp; Norm</code> 包裹每个子模块。</p></td></tr>
+
+        <tr><td class="lhs">位置编码<span class="leaf">Positional Encoding · sin/cos</span></td>
+        <td class="rhs"><p>自注意力本身<b>不含任何顺序/位置信息</b>(对它 "agent learns" 与 "learns agent" 等价)。</p>
+        <p>位置编码 = 为每个词元嵌入<b>加上</b>一个代表其位置的位置向量。该向量<b>不是学习的</b>,而是固定公式算出:</p>
+        <span class="formula">PE(pos,2i)   = sin(pos / 10000^(2i/d_model))
+PE(pos,2i+1) = cos(pos / 10000^(2i/d_model))</span>
+        <p>效果:相同词因位置不同 → 加不同位置编码 → 变得独一无二。(pos=位置,i=维度索引)</p></td></tr>
+
+        <tr><td class="lhs">Decoder-Only<span class="leaf">GPT · 自回归 · 掩码自注意力</span></td>
+        <td class="rhs"><p>GPT 的简化思想:语言核心任务就是<b>预测下一个词</b>。于是<b>完全抛弃编码器,只留解码器</b> → Decoder-Only。GPT-4/Llama 等均基于此。</p>
+        <p><b>自回归 (Autoregressive)</b>:给起始文本 → 预测下一词 → 把新词加到输入末尾 → 再预测 → 重复,像「文字接龙」。</p>
+        <p><b>掩码自注意力</b>:训练时分数算完后、Softmax 前用「因果掩码」把当前位置<b>之后的分数置为极大负数</b>,Softmax 后概率为 0,防止模型「偷看」未来答案;保证训练方式与生成时的自回归一致。</p>
+        <p><b>三大优势</b>:① 训练目标统一(只预测下一词,适合海量无标注预训练);② 结构简单易扩展;③ 天然适合生成任务。</p></td></tr>
+
+      </tbody></table>
+
+      <div class="sectitle" id="ch3-2">3.2 与大语言模型交互</div>
+      <table class="grid"><thead><tr><th>要点术语</th><th>答案与解释</th></tr></thead><tbody>
+
+        <tr><td class="lhs">top-k</td>
+        <td class="rhs"><p>按概率从高到低排序,只取<b>前 k 个</b> token 组成候选集,归一化后再采样。<code>k=1</code> 时退化为<b>贪心采样</b>(完全确定)。</p>
+        <p>与温度的区别:温度调分布陡峭(候选数不变),top-k 限制候选数量。</p></td></tr>
+
+        <tr><td class="lhs">top-p<span class="leaf">核采样 Nucleus</span></td>
+        <td class="rhs"><p>按概率排序后<b>逐步累加</b>,累加和<b>首次 ≥ p</b> 的最小集合即「核集合」,归一化后采样。</p>
+        <p>相对固定截断的 top-k,top-p 能<b>动态适应长尾</b>,对不均匀分布适应性更好。通常 top-k 与 top-p 二选一。</p></td></tr>
+
+        <tr><td class="lhs">温度 Temperature<span class="leaf">采样参数总览 · 协同优先级</span></td>
+        <td class="rhs"><p>采样参数本质:调整模型对概率分布的采样策略(基于 Softmax)。<b>温度</b>控制随机性 vs 确定性:</p>
+        <span class="formula">pᵢ^(T) = e^(zᵢ/T) / Σ e^(zⱼ/T)</span>
+        <p>T 小→分布更陡峭→更保守/确定;T 大→更平坦→更多样/可能不连贯。三档场景:</p><ul>
+          <li><b>低温 (0≤T&lt;0.3)</b>:精准确定 → 问答/数据计算/代码/法律条文;</li>
+          <li><b>中温 (0.3≤T&lt;0.7)</b>:平衡自然 → 日常对话/客服/邮件文案;</li>
+          <li><b>高温 (0.7≤T&lt;2)</b>:创新发散 → 诗歌/科幻/slogan/灵感。</li>
+        </ul><p>三参数<b>协同优先级</b>:温度调整 → top-k → top-p。边界:T=0 时 top-k/p 失效;top-k=1 时温度/p 失效。</p></td></tr>
+
+        <tr><td class="lhs">零样本 / 单样本 / 少样本<span class="leaf">Zero / One / Few-shot</span></td>
+        <td class="rhs"><p>按提供「示例 (Exemplar) 数量」分类(以情感分类为例):</p><ul>
+          <li><b>零样本</b>:不给任何示例,直接下指令(依赖预训练泛化);</li>
+          <li><b>单样本</b>:给 1 个完整示例,展示格式与输出风格;</li>
+          <li><b>少样本</b>:给多个示例,让模型理解任务细节/边界/细微差别。</li>
+        </ul></td></tr>
+
+        <tr><td class="lhs">指令调优<span class="leaf">Instruction Tuning · 文本补全 vs 指令</span></td>
+        <td class="rhs"><p>早期 GPT-3 是「文本补全」模型,不擅长理解执行指令。<span class="term">指令调优</span>= 用大量「指令-回答」数据微调预训练模型,使其能遵循指令。现今 ChatGPT/DeepSeek/Qwen 都是经指令调优的版本。</p>
+        <p>对比:文本补全模型需用少样本「教会」它;指令调优模型可直接下达自然语言指令。</p></td></tr>
+
+        <tr><td class="lhs">基础提示词技巧<span class="leaf">角色扮演 · 上下文示例</span></td>
+        <td class="rhs"><ul>
+          <li><b>角色扮演 (Role-playing)</b>:赋予特定角色 → 引导回答风格/语气/知识范围(如「你是一位资深 Python 专家…」)。</li>
+          <li><b>上下文示例 (In-context Example)</b>:同少样本思想,提供清晰输入输出示例,复杂格式/特定风格任务尤其有效(如指定 JSON 输出格式)。</li>
+        </ul></td></tr>
+
+        <tr><td class="lhs">COT<span class="leaf">思维链 Chain-of-Thought</span></td>
+        <td class="rhs"><p>适用场景:逻辑推理/计算/多步骤思考的复杂问题。核心做法:引导模型「一步一步思考」(加引导语如 "Let's think step by step")。</p>
+        <p>价值:既提升复杂任务正确率,也使回答更可信、更易检查纠正(显式展示推理过程)。</p></td></tr>
+
+        <tr><td class="lhs">分词 / 词元<span class="leaf">Tokenization · Token</span></td>
+        <td class="rhs"><p>计算机只能理解数字。<b>分词</b>= 把文本序列转成数字序列的过程;<b>分词器 (Tokenizer)</b>按规则把文本切成最小单元<b>词元 (Token)</b>。</p>
+        <p>为何不用「字符」或「单词」:</p><ul>
+          <li><b>按词</b>:词表爆炸 + 未登录词(OOV);语义关联缺失(look/looks/looking 视为不同词);</li>
+          <li><b>按字符</b>:词表小、无 OOV,但单字符无独立语义,学习效率低。</li>
+        </ul><p>现代 LLM 主流:<b>子词分词</b>——常见词保留完整,罕见词拆成有意义子词片段,兼顾词表大小与语义。</p></td></tr>
+
+        <tr><td class="lhs">BPE<span class="leaf">WordPiece · SentencePiece</span></td>
+        <td class="rhs"><p><b>BPE (字节对编码)</b>——GPT 系列采用,核心是「贪心合并」:</p><ul>
+          <li>① 初始化:词表 = 语料所有基本字符;</li>
+          <li>② 迭代合并:统计相邻词元对频率,合并<b>最高频对</b>成新词元入词表;</li>
+          <li>③ 重复直到词表达阈值。</li>
+        </ul><p>BPE 的两个主要变体:</p><ul>
+          <li><b>WordPiece</b>(Google BERT):合并标准非「最高频率」,而是「最大化提升语料库语言模型概率」(优先合并让整体更通顺的对);</li>
+          <li><b>SentencePiece</b>(Google 开源,Llama 采用):把<b>空格也当普通字符</b>(下划线 _ 表示),分词/解码完全可逆、不依赖特定语言(无需知道中文不用空格)。</li>
+        </ul></td></tr>
+
+        <tr><td class="lhs">分词器对开发者的意义<span class="leaf">上下文窗口 · API成本 · 模型异常</span></td>
+        <td class="rhs"><ul>
+          <li><b>上下文窗口限制</b>:窗口(8K/128K)以 <b>Token 数量</b>计(非字符数/单词数);中英文、不同分词器 Token 数差异大。精确管理输入长度是构建长时记忆智能体的基础。</li>
+          <li><b>API 成本</b>:多数模型按 <b>Token 数计费</b>,了解分词方式是预估/控制成本的关键。</li>
+          <li><b>模型表现的异常</b>:分词陷阱影响鲁棒性。例:<code>2 + 2</code> 能算但 <code>2+2</code>(无空格)可能出错(被切成罕见词元);同一词大小写不同 → 切成完全不同 Token 序列。</li>
+        </ul></td></tr>
+
+        <tr><td class="lhs">本地部署开源模型<span class="leaf">Hugging Face · Qwen1.5-0.5B · 调用流程</span></td>
+        <td class="rhs"><p>用 <b>Hugging Face Transformers</b> 标准化加载预训练模型。示例模型 <code>Qwen/Qwen1.5-0.5B-Chat</code>(阿里 ~5亿参数,适合入门本地部署)。</p>
+        <p>两个核心类:<code>AutoModelForCausalLM</code>(加载权重)、<code>AutoTokenizer</code>(加载分词器)。</p>
+        <p>调用四步:① <code>apply_chat_template</code> 格式化对话(system/user 角色) → ② tokenizer 编码文本为 Token ID → ③ <code>model.generate()</code> 生成(<code>max_new_tokens</code> 控制长度) → ④ <code>tokenizer.decode()</code> 把 Token ID 翻译回文本。</p></td></tr>
+
+        <tr><td class="lhs">模型选型关键考量<span class="leaf">八大维度</span></td>
+        <td class="rhs"><ul>
+          <li><b>① 性能与能力</b>:参考 LMSys Chatbot Arena 等排行榜;</li>
+          <li><b>② 成本</b>:闭源=API 按 Token 计费;开源=本地硬件+运维;</li>
+          <li><b>③ 速度(延迟)</b>:实时交互(客服/NPC)需低延迟;</li>
+          <li><b>④ 上下文窗口</b>:长文档/代码库/长期对话需大窗口(128K+);</li>
+          <li><b>⑤ 部署方式</b>:API 简便但数据出第三方;本地保隐私但要求高;</li>
+          <li><b>⑥ 生态与工具链</b>:社区/教程/微调工具/LangChain/LlamaIndex;</li>
+          <li><b>⑦ 可微调性与定制化</b>:能否用自有数据定制(开源通常更灵活);</li>
+          <li><b>⑧ 安全性与伦理</b>:偏见/毒性/幻觉及负责任 AI。</li>
+        </ul></td></tr>
+
+        <tr><td class="lhs">闭源 vs 开源模型<span class="leaf">代表模型 · MoE</span></td>
+        <td class="rhs"><p><b>闭源</b>(技术前沿 + 稳定 API):</p><ul>
+          <li><b>OpenAI GPT</b>:GPT-3→ChatGPT(引入 <b>RLHF</b> 对齐)→GPT-4(多模态)→GPT-5;</li>
+          <li><b>Google Gemini</b>:原生多模态、超长上下文,分 Ultra/Pro/Nano,2.5 含 Pro 与 Flash;</li>
+          <li><b>Anthropic Claude</b>:以 AI 安全为首,长文档/减害/指令可靠,企业级青睐;Claude 3 分 Opus/Sonnet/Haiku;</li>
+          <li><b>国内</b>:文心一言/混元/盘古/星火/月之暗面。</li>
+        </ul><p><b>开源</b>(灵活/透明/可微调):</p><ul>
+          <li><b>Meta Llama</b>:Llama 4(2025.4)首批采用 <b>MoE(混合专家)</b> 架构(仅激活所需部分提效);含 Scout(1000万 token 上下文)/Maverick(多模态)/Behemoth(最强);</li>
+          <li><b>Mistral AI</b>:法国,「小尺寸高性能」;</li>
+          <li><b>国内</b>:通义千问 Qwen、ChatGLM。</li>
+        </ul></td></tr>
+
+      </tbody></table>
+
+      <div class="sectitle" id="ch3-3">3.3 缩放法则与局限性</div>
+      <table class="grid"><thead><tr><th>要点术语</th><th>答案与解释</th></tr></thead><tbody>
+
+        <tr><td class="lhs">缩放法则<span class="leaf">Scaling Laws · 幂律</span></td>
+        <td class="rhs"><p>揭示模型性能与<b>三要素</b>呈<b>可预测的幂律关系</b>(对数-对数坐标下平滑):① 模型参数量 ② 训练数据量 ③ 计算资源(算力)。</p>
+        <p>指导意义:按比例持续增加三要素 → 性能可预测、平滑提升,无明显瓶颈。</p></td></tr>
+
+        <tr><td class="lhs">Chinchilla 定律<span class="leaf">最优配比 · 纠正「越大越好」</span></td>
+        <td class="rhs"><p>2022 年 DeepMind 提出的重要修正:<b>纠正了「越大越好」的片面认知</b>。</p>
+        <p>核心结论:给定计算预算下,<b>参数量与数据量存在最优配比</b>——最优模型应「更小但用更多数据」训练。案例:700 亿 Chinchilla 用 4 倍数据训练,性能反超 1750 亿 GPT-3。</p></td></tr>
+
+        <tr><td class="lhs">能力涌现<span class="leaf">Emergence</span></td>
+        <td class="rhs"><p>规模达阈值后<b>突然</b>展现小模型完全没有的新能力。典型涌现能力:链式思考(CoT)、指令遵循、多步推理、代码生成(数百亿~千亿参数后才显著)。</p>
+        <p>对开发者:实现复杂自主决策/规划,前提是选足够大规模的模型。</p></td></tr>
+
+        <tr><td class="lhs">模型幻觉<span class="leaf">Hallucination · 定义与三类</span></td>
+        <td class="rhs"><p><span class="term">幻觉</span>= 生成内容与客观事实/用户输入/上下文矛盾,或编造不存在的事实/实体/事件(过度自信地「编造」)。三类:</p><ul>
+          <li><b>事实性幻觉 (Factual)</b>:与现实世界事实不符;</li>
+          <li><b>忠实性幻觉 (Faithfulness)</b>:摘要/翻译等未忠实反映源文本;</li>
+          <li><b>内在幻觉 (Intrinsic)</b>:生成内容与输入信息直接矛盾。</li>
+        </ul><p><b>成因</b>:① 训练数据含错误/矛盾;② 自回归机制只预测下一词、<b>无内置事实核查</b>;③ 复杂推理逻辑链出错。另有知识时效性不足、训练数据偏见等挑战。</p></td></tr>
+
+        <tr><td class="lhs">幻觉缓解方法<span class="leaf">数据/模型/推理三层 · RAG · 工具</span></td>
+        <td class="rhs"><ul>
+          <li><b>数据层面</b>:高质量数据清洗、引入事实性知识、<b>RLHF(强化学习+人类反馈)</b>;</li>
+          <li><b>模型层面</b>:探索新架构、让模型表达不确定性;</li>
+          <li><b>推理与生成层面</b>(三种主流):
+            <ul>
+              <li><b>RAG(检索增强生成)</b>:生成前从外部知识库检索相关信息作为上下文,引导生成基于事实的回答(最有效之一);</li>
+              <li><b>多步推理与验证</b>:每步自我检查或外部验证;</li>
+              <li><b>引入外部工具</b>:调用搜索引擎/计算器/代码解释器获取实时信息或精确计算。</li>
+            </ul>
+          </li>
+        </ul></td></tr>
+
+      </tbody></table>
+    </section>
+
+    <footer>
+      数据来源:datawhale hello-agents 教程第一/二/三章。 · 本页为个人学习用要点清单(左栏回忆、右栏核对),仅供自学,请勿公开传播以尊重原作者版权。
+    </footer>
+
+  </div><!-- /content -->
+</div><!-- /layout -->
+
+<!-- 自测模式提示 -->
+<div class="test-banner">🧠 自测模式 · 点「隐藏右栏」退出</div>
+
+<script>
+  // 隐藏/显示右栏 —— 自测模式
+  document.getElementById('btnHide').addEventListener('click', function(){
+    document.body.classList.toggle('hide-rhs');
+    this.classList.toggle('active');
+  });
+  // 主题切换(亮/暗/跟随系统 三态)
+  (function(){
+    var btn = document.getElementById('btnTheme');
+    var states = ['auto','light','dark'];
+    var idx = 0;
+    btn.addEventListener('click', function(){
+      idx = (idx+1) % 3;
+      var s = states[idx];
+      if(s==='auto'){ document.documentElement.removeAttribute('data-theme'); btn.textContent='🌗 跟随系统'; }
+      else if(s==='light'){ document.documentElement.setAttribute('data-theme','light'); btn.textContent='☀️ 亮色'; }
+      else { document.documentElement.setAttribute('data-theme','dark'); btn.textContent='🌙 暗色'; }
+    });
+  })();
+  // 点击目录链接后,移动端自动收起抽屉
+  document.querySelectorAll('aside.side nav a').forEach(function(a){
+    a.addEventListener('click', function(){
+      if(window.innerWidth <= 880) document.getElementById('sidebar').classList.remove('open');
+    });
+  });
+</script>
+</body>
+</html>
