@@ -1,14 +1,8 @@
 '''
-涉及的语法：
-.get(key,默认值【默认是None】)
-enumerate(iterable,start = 0)作用：遍历可迭代对象，同时生成【索引，元素】，iterator 迭代器
-[ 表达式  for 变量 in 可迭代对象 ] 每执行一次for in 就赋值给前面的表达式
-分隔字符串.join(可迭代对象),要求：可迭代里面每一个元素都必须是字符串。
-✅ list 列表（你现在在用的）
-✅ tuple 元组
-✅ 生成器表达式 (x for x in ...)
-✅ 集合 set（不常用，顺序乱）
-✅ 字符串本身
+工具的创建与管理: 向 ReAct 智能体提供可注册、可调用的外部工具。
+
+ToolExecutor: 工具执行器,负责注册(registerTool)、按名获取(getTool)与列出可用工具(getAvailableTools)
+search: SerpApi 网页搜索引擎工具,优先返回 answer_box/知识图谱等直接答案,否则退回前三条搜索摘要
 '''
 
 import os
@@ -17,10 +11,7 @@ from serpapi import SerpApiClient
 
 load_dotenv()   #加载.env环境变量,必须在读取os.getenv之前执行
 def search(query: str) -> str:
-    '''
-    一个基于SerpApi的实战网页搜索引擎工具。
-    它会智能地解析搜索结果，优先返回直接答案或知识图谱信息。
-    '''
+    '''基于 SerpApi 的网页搜索工具,智能解析优先返回直接答案或知识图谱。'''
     print(f"正在执行[SerpApi]网页搜索：{query}")
     try:
         api_key = os.getenv("SERPAPI_API_KEY")   #键名要与.env里的SERPAPI_API_KEY完全一致(原代码误写成SERPAPI_PI_KEY)

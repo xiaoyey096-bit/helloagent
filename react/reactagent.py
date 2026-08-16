@@ -1,20 +1,7 @@
 """
-ReAct 智能体核心循环。
+ReAct 智能体核心循环: Thought → Action → Observation 循环推理,直到 Finish 或达到最大步数。
 
-功能: 实现 Thought → Action → Observation 的推理循环,解析 LLM 输出的 Action 并调用工具执行,直到 Finish 或达到最大步数。
-创建日期: 2026-08-15
-
-输入:
-  llm.py 的 HelloAgentsLLM 实例(LLM 客户端)
-  tools.py 的 ToolExecutor 实例(工具执行器)
-  run() 入参: question 用户问题字符串
-
-输出:
-  ① run() 返回最终答案字符串(Finish 解析结果/超步数强制总结;彻底失败返回 None)
-  ② 过程信息(每轮 Thought/Action/Observation)打印到控制台
-
-核心类:
-  ReActAgent — ReAct 智能体;含输出解析(_parse_output)、动作解析(_parse_action)与容错回路
+ReActAgent: ReAct 智能体,run() 驱动主循环;含输出解析(_parse_output)、动作解析(_parse_action)与超步数强制总结(_force_final_answer)
 """
 
 import re
@@ -24,14 +11,7 @@ from prompts import REACT_PROMPT_TEMPLATE, FINAL_ANSWER_PROMPT_TEMPLATE
 
 
 class ReActAgent:
-    """
-    ReAct 智能体。
-
-    入参:
-      llm_client: HelloAgentsLLM 实例,负责"思考"
-      tool_executor: ToolExecutor 实例,负责"行动"
-      max_steps: 最大推理轮数,防止无限循环(默认5)
-    """
+    '''ReAct 智能体:llm_client 负责"思考",tool_executor 负责"行动",max_steps 防止无限循环。'''
 
     def __init__(self, llm_client: HelloAgentsLLM, tool_executor: ToolExecutor, max_steps: int = 5):
         self.llm_client = llm_client
@@ -40,13 +20,7 @@ class ReActAgent:
         self.history = []   # 每轮的 Thought/Action/Observation 文本记录
 
     def run(self, question: str) -> str:
-        '''
-        运行 ReAct 智能体回答一个问题。
-
-        流程: ①格式化提示词 → ②调用LLM思考 → ③解析输出 → ④Finish则返回/否则执行工具
-              → ⑤观察结果入历史 → 回到①;超过 max_steps 则强制总结答案。
-        返回: 最终答案字符串;彻底失败返回 None
-        '''
+        '''运行 ReAct 主循环回答问题:提示词→思考→解析→Finish返回/执行工具→观察入历史,超步数强制总结。'''
         self.history = []  # 每次运行时重置历史记录
         current_step = 0
 
@@ -57,6 +31,7 @@ class ReActAgent:
             # 1. 格式化提示词(工具描述 + 问题 + 历史)
             tools_desc = self.tool_executor.getAvailableTools()
             history_str = "\n".join(self.history) if self.history else "(空)"
+            #三元条件表达式，变量 = 表达式A  if 条件 else 表达式B，，if成立则A，else B
             prompt = REACT_PROMPT_TEMPLATE.format(
                 tools=tools_desc,
                 question=question,
@@ -83,7 +58,7 @@ class ReActAgent:
                 self.history.append(f"(系统提示:你上一轮的输出没有可解析的 Action,请严格按 Thought:/Action: 格式重新输出)")
                 continue
 
-            # 4. 判断是否为 Finish 指令
+            # 4. 判断开头是否为 Finish 指令
             if action.startswith("Finish"):
                 final_answer = self._parse_action(action)[1]
                 if not final_answer:   # Finish[] 解析失败时兜底,取括号后全部内容
@@ -120,13 +95,9 @@ class ReActAgent:
         return self._force_final_answer(question)
 
     def _parse_output(self, text: str) -> tuple[str | None, str | None]:
-        '''
-        解析 LLM 输出,提取 Thought 和 Action。
-
-        入参: text — LLM 的完整回复文本
-        返回: (thought, action) 元组,解析失败的项为 None
-        '''
+        '''用正则从 LLM 输出中提取 Thought 和 Action,解析失败的项为 None。'''
         # Thought: 匹配到 Action: 或文本末尾
+        #re.search 表示从头开始扫，r表示原始字符串（防止被转义）
         thought_match = re.search(r"Thought:\s*(.*?)(?=\nAction:|$)", text, re.DOTALL)
         # Action: 匹配到文本末尾
         action_match = re.search(r"Action:\s*(.*?)$", text, re.DOTALL)
@@ -135,24 +106,14 @@ class ReActAgent:
         return thought, action
 
     def _parse_action(self, action_text: str) -> tuple[str | None, str | None]:
-        '''
-        解析 Action 字符串,提取工具名和输入(兼容 Finish[答案] 格式)。
-
-        入参: action_text — 形如 "Search[查询词]" 或 "Finish[答案]" 的字符串
-        返回: (名称, 输入) 元组;格式不匹配时返回 (None, None)
-        '''
+        '''解析 Action 字符串,提取工具名和输入,兼容 Finish[答案] 格式。'''
         match = re.match(r"(\w+)\[(.*)\]", action_text, re.DOTALL)
         if match:
             return match.group(1), match.group(2)
         return None, None
 
     def _force_final_answer(self, question: str) -> str:
-        '''
-        达到最大步数后,禁止调用工具,强制 LLM 基于已有历史总结最终答案。
-
-        入参: question — 原始用户问题
-        返回: 最终答案字符串;LLM 调用失败返回 None
-        '''
+        '''达到最大步数后禁止调用工具,强制 LLM 基于已有历史总结最终答案。'''
         print("\n已达到最大步数,强制总结答案...")
         history_str = "\n".join(self.history) if self.history else "(空)"
         prompt = FINAL_ANSWER_PROMPT_TEMPLATE.format(question=question, history=history_str)

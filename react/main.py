@@ -1,17 +1,8 @@
 """
-ReAct 智能体项目入口。
+ReAct 智能体项目入口: 组装 LLM 客户端、工具执行器与 ReAct 智能体,提供演示问题与交互问答。
 
-功能: 组装 LLM 客户端(llm.py)、工具执行器(tools.py)与 ReAct 智能体(reactagent.py),提供交互式问答入口。
-创建日期: 2026-08-15
-
-输入:
-  .env 环境变量(LLM_* 与 SERPAPI_API_KEY)
-  终端标准输入:用户问题(输入 exit 或 q 退出;启动时无命令行参数则先跑一个演示问题)
-
-输出: 控制台打印每轮 Thought/Action/Observation 与最终答案,无文件产物
-
-用法:
-  python main.py            # 先跑内置演示问题,再进入交互问答
+build_agent: 创建 LLM 客户端 → 注册 Search 工具 → 实例化 ReActAgent
+用法: python main.py(先跑内置演示问题再进入交互问答,输入 exit/q 退出;python main.py debug 打印原始 chunk)
 """
 
 import sys
@@ -26,12 +17,7 @@ from reactagent import ReActAgent
 
 
 def build_agent(max_steps: int = 5, debug: bool = False) -> ReActAgent:
-    '''
-    组装 ReAct 智能体:创建 LLM 客户端 → 注册工具 → 实例化智能体。
-
-    入参: max_steps 最大推理轮数; debug 是否打印 LLM 原始 chunk 数据包
-    返回: 可直接调用 run(question) 的 ReActAgent 实例
-    '''
+    '''组装 ReAct 智能体:创建 LLM 客户端 → 注册工具 → 实例化智能体。'''
     # 1. 创建 LLM 客户端(配置来自 .env)
     llm_client = HelloAgentsLLM(debug=debug)
 

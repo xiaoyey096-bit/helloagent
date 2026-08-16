@@ -1,19 +1,7 @@
 """
-统一的大语言模型(LLM)客户端。
+LLM 客户端: 封装对任何兼容 OpenAI 接口服务的流式调用,供智能体"思考"。
 
-功能: 封装对任何兼容 OpenAI 接口服务的调用,默认流式输出,支持打印原始 chunk 数据包用于教学调试。
-创建日期: 2026-08-15
-
-输入:
-  .env 环境变量: LLM_API_KEY / LLM_MODEL_ID / LLM_BASE_URL / LLM_TIMEOUT(可被构造参数覆盖)
-  think() 方法入参: messages 消息列表,如 [{"role": "user", "content": "..."}]
-
-输出:
-  ① think() 返回模型完整回复字符串(流式收集拼接;调用失败返回 None)
-  ② debug=True 时,控制台额外逐包打印每个原始 chunk 的 JSON(教学观察用)
-
-核心类:
-  HelloAgentsLLM — LLM 客户端,合并自 CLclient 与原教学 demo,debug 参数控制原始数据包打印
+HelloAgentsLLM: LLM 客户端,配置从 .env 读取;think() 流式接收并返回完整回复,debug 参数控制打印原始 chunk 数据包
 """
 
 import os
@@ -25,17 +13,7 @@ load_dotenv()
 
 
 class HelloAgentsLLM:
-    """
-    LLM 客户端。
-    用于调用任何兼容 OpenAI 接口的服务,默认使用流式响应。
-
-    入参:
-      model: 模型ID,缺省读 .env 的 LLM_MODEL_ID
-      apiKey: API密钥,缺省读 .env 的 LLM_API_KEY
-      baseUrl: 服务地址,缺省读 .env 的 LLM_BASE_URL
-      timeout: 请求超时秒数,缺省读 .env 的 LLM_TIMEOUT(默认60)
-      debug: 是否打印每个原始 chunk 的 JSON 数据包(教学调试用)
-    """
+    '''LLM 客户端:调用任何兼容 OpenAI 接口的服务,默认流式响应;model/apiKey/baseUrl/timeout 缺省读 .env,debug 控制打印原始 chunk。'''
 
     def __init__(self, model: str = None, apiKey: str = None, baseUrl: str = None,
                  timeout: int = None, debug: bool = False):
@@ -54,12 +32,7 @@ class HelloAgentsLLM:
         self.client = OpenAI(api_key=apiKey, base_url=baseUrl, timeout=timeout)
 
     def think(self, messages: list[dict[str, str]], temperature: float = 0) -> str:
-        '''
-        调用大语言模型进行思考,流式接收并返回其完整响应。
-
-        入参: messages 消息列表; temperature 采样温度(0=最确定)
-        返回: 完整回复字符串;调用失败返回 None
-        '''
+        '''流式调用大语言模型并返回完整响应,调用失败返回 None。'''
         print(f"正在调用 {self.model} 模型...")
         try:
             response = self.client.chat.completions.create(

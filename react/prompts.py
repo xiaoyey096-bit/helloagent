@@ -1,15 +1,8 @@
 """
-ReAct 智能体的提示词模板。
+ReAct 提示词模板: 集中管理提示词,严格规定 Thought/Action 输出格式。
 
-功能: 集中管理 ReAct 框架的系统提示词,规定 Thought/Action/Observation 的输出格式,供 reactagent.py 填充使用。
-创建日期: 2026-08-15
-
-输入: 无(纯模板;{tools}/{question}/{history} 三个占位符由 ReActAgent.run() 用 str.format 填充)
-输出: ① REACT_PROMPT_TEMPLATE — ReAct 主循环提示词模板
-      ② FINAL_ANSWER_PROMPT_TEMPLATE — 达到最大步数后强制总结答案的模板
-
-注意: 模板中出现的字面大括号(如示例里的 tool_name[input])不含 { },若以后要加,必须写成 {{ }} 转义,
-否则 str.format 会把它当成占位符报 KeyError。
+REACT_PROMPT_TEMPLATE: ReAct 主循环提示词,含 {tools}/{question}/{history} 三个占位符与 few-shot 示例
+FINAL_ANSWER_PROMPT_TEMPLATE: 达到最大步数后禁止调用工具、强制总结答案的模板
 """
 
 # ReAct 主循环提示词:告知可用工具、严格规定输出格式,并给出 few-shot 示例帮助小模型守格式
