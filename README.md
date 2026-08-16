@@ -8,10 +8,13 @@ Datawhale hello-agent 课程实战:用最少的依赖从零实现两种智能体
 hello agent/
 ├── react/                     # ReAct 范式:边想边做,可调用外部搜索工具
 │   ├── main.py                # 入口:python react/main.py(加 debug 参数打印原始 chunk)
-│   ├── reactagent.py          # Thought→Action→Observation 循环
+│   ├── reactagent.py          # Thought→Action→Observation 循环(正则解析版)
 │   ├── llm.py                 # LLM 流式客户端
 │   ├── prompts.py             # 提示词模板
 │   ├── tools.py               # SerpApi 搜索工具与工具执行器
+│   ├── reactagent_json.py     # JSON 协议版智能体:json_object 模式 + 防御性解析(4.2 思考题)
+│   ├── prompts_json.py        # JSON 协议提示词模板
+│   ├── main_json.py           # JSON 版入口:python react/main_json.py
 │   └── reactagent执行链路.html # 执行链路架构图
 ├── plan_and_solve/            # Plan-and-Solve 范式:先规划后执行,纯 LLM 问答
 │   ├── main.py                # 入口:python plan_and_solve/main.py

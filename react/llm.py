@@ -31,8 +31,8 @@ class HelloAgentsLLM:
 
         self.client = OpenAI(api_key=apiKey, base_url=baseUrl, timeout=timeout)
 
-    def think(self, messages: list[dict[str, str]], temperature: float = 0) -> str:
-        '''流式调用大语言模型并返回完整响应,调用失败返回 None。'''
+    def think(self, messages: list[dict[str, str]], temperature: float = 0, **kwargs) -> str:
+        '''流式调用大语言模型并返回完整响应,调用失败返回 None;额外参数(如 response_format)原样透传给接口。'''
         print(f"正在调用 {self.model} 模型...")
         try:
             response = self.client.chat.completions.create(
@@ -40,6 +40,7 @@ class HelloAgentsLLM:
                 messages=messages,
                 temperature=temperature,
                 stream=True,
+                **kwargs,
             )
 
             # 处理流式响应:每个 chunk 形如
