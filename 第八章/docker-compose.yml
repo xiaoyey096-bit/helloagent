@@ -1,0 +1,40 @@
+# 第八章本地数据库编排: 用一条命令同时启动 Qdrant(向量库)与 Neo4j(图库),
+# 数据存在命名卷里,容器删了数据仍在。
+#
+# 常用命令(在本文件所在目录执行):
+#   docker compose up -d      # 后台启动两个数据库
+#   docker compose ps         # 查看运行状态
+#   docker compose logs -f    # 跟踪日志(Ctrl+C 退出,容器继续跑)
+#   docker compose down       # 停止并删除容器(数据保留在卷里)
+#   docker compose down -v    # 连数据卷一起删(彻底清空,慎用)
+
+name: hello-agents-chapter8   # 项目名(目录名含中文会被转写成空串,必须显式指定)
+
+services:
+  qdrant:
+    image: qdrant/qdrant:latest        # Qdrant 向量数据库
+    container_name: hello-agents-qdrant
+    ports:
+      - "6333:6333"                     # HTTP API / Web 控制台(http://localhost:6333/dashboard)
+      - "6334:6334"                     # gRPC 接口
+    volumes:
+      - qdrant_data:/qdrant/storage     # 向量数据持久化到命名卷
+    restart: unless-stopped
+
+  neo4j:
+    image: neo4j:5                       # Neo4j 5 社区版图数据库
+    container_name: hello-agents-neo4j
+    ports:
+      - "7474:7474"                      # Web 管理界面(http://localhost:7474)
+      - "7687:7687"                      # Bolt 协议(Python 驱动连这个)
+    environment:
+      - NEO4J_AUTH=neo4j/hello-agents-2026   # 用户名固定 neo4j,密码自定(登录 Web 和 .env 都用它)
+    volumes:
+      - neo4j_data:/data                 # 图数据持久化
+      - neo4j_logs:/logs                 # 日志持久化
+    restart: unless-stopped
+
+volumes:
+  qdrant_data:
+  neo4j_data:
+  neo4j_logs:
